@@ -6,7 +6,6 @@ while (true) {
     if (!id("bubble_container").findOne()) {
 
     } else {
-        sleep(100);
         var text = id("tv_title_small").findOne().text().replace(/。/, "")
         var textArr = text.split("");
         var key = "";
@@ -27,7 +26,6 @@ while (true) {
                 key += textArr[i];
             };
             map(key);
-            continue;
         } else if (textArr[0] + textArr[3] + textArr[4] == "在查询") {
             //查询功能
             id("bubble_sign_close").findOne().click();
@@ -38,7 +36,6 @@ while (true) {
             };
 
             search(key, obj);
-            continue;
         } else if (textArr[0] + textArr[1] + textArr[2] == "打电话") {
             // id("bubble_sign_close").findOne().click();
 
@@ -47,6 +44,45 @@ while (true) {
             // };
 
             // call(key);
+        } else if (textArr[0] + textArr[1] == "开始") {
+            //开始番茄计时
+            if (getAppName("com.plan.kot32.tomatotime")) {
+                id("bubble_sign_close").findOne().click();
+
+                for (var i = 2; i < textArr.length; i++) {
+                    key += textArr[i];
+                };
+                tomatoTime(key);
+            } else {
+                continue;
+            }
+        } else if (textArr[2] + textArr[3] == "付款" || textArr[3] + textArr[4] == "付款") {
+            //付款
+            id("bubble_sign_close").findOne().click();
+
+            var obj = 0;
+            if (textArr[0] + textArr[1] == "微信") {
+
+            } else {
+                obj = 1;
+            }
+
+            pay(obj);
+        } else if (textArr[0] + textArr[1] + textArr[2] == "倒计时") {
+            //计时器功能
+            id("bubble_sign_close").findOne().click();
+
+            var TimeUnitException = {}; //中断forEach
+            try {
+                if (!textArr[textArr.length] == "钟") {
+                    throw TimeException;
+                }
+                var time = text.match(/\时(\S*)\分/)[1];
+                timer(time);
+
+            } catch (TimeUnitException) {
+                toast("注意！只能以分钟为单位。");
+            }
         }
 
         text = "";
@@ -54,6 +90,7 @@ while (true) {
         key = "";
         obj = "";
     }
+    sleep(300);
 }
 
 //提醒功能
@@ -67,16 +104,16 @@ function remind(content) {
         packageName: "com.android.calendar",
         className: "com.android.calendar.event.EditEventActivity"
     });
-    
+
     while (true) {
         if (!className("android.widget.Button").text("完成").findOne()) {
-            
+
         } else {
             className("android.widget.Button").text("完成").findOne().click();
             toast("创建成功！");
             break;
         }
-    }   
+    }
 }
 
 //导航功能
@@ -120,6 +157,145 @@ function search(content, obj) {
     toast("查询结束后\n请连续点击“返回键”退出搜索页面");
 }
 
+//番茄计时功能
+function tomatoTime(key) {
+    app.startActivity({
+        packageName: "com.plan.kot32.tomatotime",
+        className: "com.plan.kot32.tomatotime.activity.MainActivity"
+    });
+
+    while (true) {
+        if (id("tl_custom").exists()) {
+            var bounds = className("android.widget.TextView").text(key).findOne().bounds().toString();
+            var x = 800;
+            var y = Number(bounds.match(/ (\S*)\)/)[1]);
+            click(x, y);
+            break;
+        }
+    }
+}
+
+//付款
+function pay(obj) {
+
+    switch (obj) {
+        case 0: //微信
+            app.startActivity({
+                packageName: "com.tencent.mm",
+                className: "com.tencent.mm.plugin.offline.ui.WalletOfflineCoinPurseUI"
+            });
+
+            sleep(1000);
+            if (id("original_app_icon").exists()) {
+                id("original_app_icon").findOne().click();
+            }
+
+            break;
+        case 1: //支付宝
+            app.startActivity({
+                packageName: "com.eg.android.AlipayGphone",
+                className: "com.eg.android.AlipayGphone.AlipayLogin"
+            });
+
+            while (true) {
+                if (className("android.widget.TextView").text("首页").exists()) {
+                    var BreakException = {}; //中断forEach的异常
+                    var bounds = className("android.widget.TextView").text("首页").findOne().bounds().toString();
+
+                    var x = Number(bounds.match(/\((\S*)\,/)[1]);
+                    var y = Number(bounds.match(/ (\S*) /)[1]);
+
+                    click(x, y);
+                    try {
+                        className("android.widget.ListView").findOne().children().forEach(child => {
+
+                            var target = child.findOne(className("android.widget.TextView").text("付钱"));
+                            var bounds = target.bounds().toString();
+
+                            if (!target) {
+                                throw BreakException;
+                            }
+
+                            var x = Number(bounds.match(/\((\S*)\,/)[1]);
+                            var y = Number(bounds.match(/ (\S*) /)[1]);
+                            click(x, y);
+                        });
+                    } catch (BreakException) {
+
+                    };
+
+                    break;
+                }
+            }
+    }
+}
+
+//倒计时功能
+function timer(m) {
+    switch (m) {
+        case "一":
+            m = 1;
+            break;
+        case "两":
+            m = 2;
+            break;
+        case "三":
+            m = 3;
+            break;
+        case "四":
+            m = 4;
+            break;
+        case "五":
+            m = 5;
+            break;
+        case "六":
+            m = 6;
+            break;
+        case "七":
+            m = 7;
+            break;
+        case "八":
+            m = 8;
+            break;
+        case "九":
+            m = 9;
+            break;
+        case "十":
+            m = 10;
+            break;
+    }
+
+    var TimeException = {}; //时间异常
+    try {
+        if (!isNaN(m) && m > 0 && m < 61) {
+            app.startActivity({
+                packageName: "com.smartisanos.clock",
+                className: "com.smartisanos.clock.activity.ClockActivity"
+            });
+
+            while (true) {
+                if (className("android.widget.RadioButton").text("计时器").exists()) {
+                    className("android.widget.RadioButton").text("计时器").findOne().click()
+
+                    var bounds = id("high_light").findOne().bounds().toString();
+
+                    var x = Number(bounds.match(/\((\S*)\,/)[1]);;
+                    var y = Number(bounds.match(/ (\S*) /)[1]);
+
+                    var endY = y + 20 * m;
+                    swipe(x, y, x, endY, 10);
+                    break;
+                }
+            }
+        } else {
+            throw TimeException;
+        }
+
+    } catch (TimeException) {
+        toast("时间有误！\n倒计时范围：1 ~ 60 分钟");
+    }
+}
+
 // function call(content) {
 //     app.startActivity({
 //         packageName: "com.smartisanos.quicksearch",
@@ -136,7 +312,7 @@ function search(content, obj) {
 //             break;
 //         }
 //     }
-    
+
 //     console.log(content);
 
 //     // id("suggestions").findOne().children().forEach(child => {
