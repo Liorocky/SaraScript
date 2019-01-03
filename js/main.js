@@ -283,6 +283,8 @@ function timer(m) {
                     var y = Number(bounds.match(/ (\S*) /)[1]);
 
                     var endY = y + 20 * m;
+
+                    sleep(200);
                     swipe(x, y, x, endY, 10);
                     break;
                 }
