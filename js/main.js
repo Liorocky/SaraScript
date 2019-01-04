@@ -389,7 +389,14 @@ function scanner(obj) {
 function busCode(obj) {
     switch (obj) {
         case 0: //微信
-            toast("暂不支持");
+            toastNew(1);
+            setScreenMetrics(1080, 1920);
+            swipe(1060, 10, 820, 360, 200);
+            sleep(300);
+            swipe(1000, 400, 1000, 4000, 200);
+            sleep(1500);
+            click(1020, 342);
+            click(1060, 10);
             break;
         case 1: //支付宝
             try {
