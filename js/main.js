@@ -67,9 +67,9 @@ while (true) {
             //付款
             id("bubble_sign_close").findOne().click();
 
-            var obj = 0;
+            var obj = -1;
             if (textArr[textArr.length - 4] + textArr[textArr.length - 3] == "微信") {
-
+                obj = 0;
             } else if (textArr[textArr.length - 5] + textArr[textArr.length - 4] + textArr[textArr.length - 3] == "支付宝") {
                 obj = 1;
             }
@@ -89,9 +89,9 @@ while (true) {
             //扫一扫功能
             id("bubble_sign_close").findOne().click();
 
-            var obj = 0;
+            var obj = -1;
             if (textArr[textArr.length - 5] + textArr[textArr.length - 4] == "微信") {
-
+                obj = 0;
             } else if (textArr[textArr.length - 6] + textArr[textArr.length - 5] + textArr[textArr.length - 4] == "支付宝") {
                 obj = 1;
             }
@@ -100,9 +100,9 @@ while (true) {
             //乘车码功能
             id("bubble_sign_close").findOne().click();
 
-            var obj = 0;
+            var obj = -1;
             if (textArr[textArr.length - 4] + textArr[textArr.length - 3] == "微信") {
-
+                obj = 0;
             } else if (textArr[textArr.length - 5] + textArr[textArr.length - 4] + textArr[textArr.length - 3] == "支付宝") {
                 obj = 1;
             }
@@ -273,6 +273,7 @@ function pay(obj) {
                 toastNew(1);
 
                 if (clickTimerByText("首页")) {
+                    sleep(100);
                     clickTimerByText("付钱");
                 }
 
@@ -280,6 +281,7 @@ function pay(obj) {
                 toast("错误！\n未安装支付宝或不支持此版本\n请安装或更新软件");
             };
             break;
+        default: toast("暂不支持");
     }
 }
 
@@ -389,6 +391,7 @@ function scanner(obj) {
                 });
 
                 toastNew(1);
+
                 if (clickTimerByText("首页")) {
                     clickTimerByText("扫一扫");
                 }
