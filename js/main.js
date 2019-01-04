@@ -3,13 +3,12 @@
 toast("启动成功!\n请使用“闪念胶囊”唤醒语音识别");
 
 while (true) {
-    if (!id("bubble_container").findOne()) {
+    if (!id("bubble_container").exists()) {
 
     } else {
         var text = id("tv_title_small").findOne().text().replace(/。/, "")
         var textArr = text.split("");
         var key = "";
-
         if (textArr[0] + textArr[1] + textArr[2] == "提醒我") {
             //提醒功能
             id("bubble_sign_close").findOne().click();
@@ -37,13 +36,7 @@ while (true) {
 
             search(key, obj);
         } else if (textArr[0] + textArr[1] + textArr[2] == "打电话") {
-            // id("bubble_sign_close").findOne().click();
-
-            // for (var i = 4; i < textArr.length; i++) {
-            //     key += textArr[i];
-            // };
-
-            // call(key);
+            continue;
         } else if (textArr[0] + textArr[1] == "开始") {
             //开始番茄计时
             if (getAppName("com.plan.kot32.tomatotime")) {
@@ -56,33 +49,52 @@ while (true) {
             } else {
                 continue;
             }
-        } else if (textArr[2] + textArr[3] == "付款" || textArr[3] + textArr[4] == "付款") {
+        } else if (textArr[textArr.length - 2] + textArr[textArr.length - 1] == "付款") {
             //付款
             id("bubble_sign_close").findOne().click();
 
             var obj = 0;
             if (textArr[0] + textArr[1] == "微信") {
 
-            } else {
+            } else if (textArr[0] + textArr[1] + textArr[2] == "支付宝") {
                 obj = 1;
             }
 
             pay(obj);
         } else if (textArr[0] + textArr[1] + textArr[2] == "倒计时") {
-            //计时器功能
+            //倒计时功能
             id("bubble_sign_close").findOne().click();
 
-            var TimeUnitException = {}; //中断forEach
-            try {
-                if (!textArr[textArr.length] == "钟") {
-                    throw TimeException;
-                }
+            if (textArr[textArr.length - 1] != "钟") {
+                toast("注意！只能以分钟为单位。");
+            } else {
                 var time = text.match(/\时(\S*)\分/)[1];
                 timer(time);
-
-            } catch (TimeUnitException) {
-                toast("注意！只能以分钟为单位。");
             }
+        } else if (textArr[textArr.length - 3] + textArr[textArr.length - 2] + textArr[textArr.length - 1] == "扫一扫") {
+            //扫一扫功能
+            id("bubble_sign_close").findOne().click();
+
+            var obj = 0;
+            if (textArr[0] + textArr[1] == "微信") {
+
+            } else if (textArr[0] + textArr[1] + textArr[2] == "支付宝") {
+                obj = 1;
+            }
+
+            scanner(obj);
+        } else if (textArr[textArr.length - 2] + textArr[textArr.length - 1] == "乘车") {
+            //乘车码功能
+            id("bubble_sign_close").findOne().click();
+
+            var obj = 0;
+            if (textArr[0] + textArr[1] == "微信") {
+
+            } else if (textArr[0] + textArr[1] + textArr[2] == "支付宝") {
+                obj = 1;
+            }
+
+            busCode(obj);
         }
 
         text = "";
@@ -90,143 +102,174 @@ while (true) {
         key = "";
         obj = "";
     }
-    sleep(300);
+    sleep(200);
 }
 
 //提醒功能
 function remind(content) {
-    app.startActivity({
-        action: "android.intent.action.SEND",
-        type: "text/*",
-        extras: {
-            "android.intent.extra.TEXT": content
-        },
-        packageName: "com.android.calendar",
-        className: "com.android.calendar.event.EditEventActivity"
-    });
+    try {
+        app.startActivity({
+            action: "android.intent.action.SEND",
+            type: "text/*",
+            extras: {
+                "android.intent.extra.TEXT": content
+            },
+            packageName: "com.android.calendar",
+            className: "com.android.calendar.event.EditEventActivity"
+        });
 
-    while (true) {
-        if (!className("android.widget.Button").text("完成").findOne()) {
-
-        } else {
-            className("android.widget.Button").text("完成").findOne().click();
+        if (clickLxTyByClass("android.widget.Button", "完成")) {
             toast("创建成功！");
-            break;
-        }
+        };
+
+    } catch (Exception) {
+        toast("创建失败！");
     }
 }
 
 //导航功能
 function map(content) {
-    toast("正在使用高德地图查询地点，请稍等……");
-    app.startActivity({
-        action: "android.intent.action.SEND",
-        type: "text/plain",
-        extras: {
-            "android.intent.extra.TEXT": content
-        },
-        packageName: "com.autonavi.minimap",
-        className: "com.autonavi.map.activity.NewMapActivity"
-    });
+    try {
+        app.startActivity({
+            action: "android.intent.action.SEND",
+            type: "text/plain",
+            extras: {
+                "android.intent.extra.TEXT": content
+            },
+            packageName: "com.autonavi.minimap",
+            className: "com.autonavi.map.activity.NewMapActivity"
+        });
+
+        toast("正在使用高德地图查询地点，请稍等……");
+
+    } catch (Exception) {
+        toast("错误！\n未安装高德地图或不支持此版本\n请安装或更新软件")
+    }
 }
 
 //查询功能
 function search(content, obj) {
-    toast("正在使用" + obj + "查询，请稍等……");
-    if (obj == "淘宝") {
-        app.startActivity({
-            action: "android.intent.action.SEND",
-            type: "text/plain",
-            extras: {
-                "android.intent.extra.TEXT": content
-            },
-            packageName: "com.taobao.taobao",
-            className: "com.taobao.search.sf.MainSearchResultActivity"
-        });
-    } else if (obj == "京东") {
-        app.startActivity({
-            action: "android.intent.action.SEND",
-            type: "text/plain",
-            extras: {
-                "android.intent.extra.TEXT": content
-            },
-            packageName: "com.jingdong.app.mall",
-            className: "com.jd.lib.search.view.Activity.ProductListActivity"
-        });
+    switch (obj) {
+        case "淘宝":
+            try {
+                app.startActivity({
+                    action: "android.intent.action.SEND",
+                    type: "text/plain",
+                    extras: {
+                        "android.intent.extra.TEXT": content
+                    },
+                    packageName: "com.taobao.taobao",
+                    className: "com.taobao.search.sf.MainSearchResultActivity"
+                });
+                toast("正在使用" + obj + "查询，请稍等……");
+                toast("查询结束后\n请连续点击“返回键”退出搜索页面");
+            } catch (Exception) {
+                toast("错误！\n未安装淘宝或不支持此版本\n请安装或更新软件");
+            };
+            break;
+        case "京东":
+            try {
+                app.startActivity({
+                    action: "android.intent.action.SEND",
+                    type: "text/plain",
+                    extras: {
+                        "android.intent.extra.TEXT": content
+                    },
+                    packageName: "com.jingdong.app.mall",
+                    className: "com.jd.lib.search.view.Activity.ProductListActivity"
+                });
+                toast("正在使用" + obj + "查询，请稍等……");
+                toast("查询结束后\n请连续点击“返回键”退出搜索页面");
+            } catch (Exception) {
+                toast("错误！\n未安装京东或不支持此版本\n请安装或更新软件");
+            };
+            break;
+        default: toast("暂不支持");
     }
-    toast("查询结束后\n请连续点击“返回键”退出搜索页面");
 }
 
 //番茄计时功能
 function tomatoTime(key) {
-    app.startActivity({
-        packageName: "com.plan.kot32.tomatotime",
-        className: "com.plan.kot32.tomatotime.activity.MainActivity"
-    });
+    try {
+        app.startActivity({
+            packageName: "com.plan.kot32.tomatotime",
+            className: "com.plan.kot32.tomatotime.activity.MainActivity"
+        });
+        toastNew(0);
 
-    while (true) {
-        if (id("tl_custom").exists()) {
-            var bounds = className("android.widget.TextView").text(key).findOne().bounds().toString();
-            var x = 800;
-            var y = Number(bounds.match(/ (\S*)\)/)[1]);
-            click(x, y);
-            break;
+        for (var i = 0; i < 6; i++) {
+            if (i == 5) {
+                toast("启动失败，没有这个待办事项");
+            }
+
+            if (className("android.widget.TextView").text(key).exists()) {
+                var bounds = className("android.widget.TextView").text(key).findOne().bounds().toString();
+                var x = 900;
+                var y = Number(bounds.match(/ (\S*)\)/)[1]);
+                click(x, y);
+
+                return;
+            }
+
+            sleep(600);
         }
+    } catch (Exception) {
+        toast("错误！\n未安装番茄Todo或不支持此版本\n请安装或更新软件");
     }
 }
 
 //付款
 function pay(obj) {
-
     switch (obj) {
-        case 0: //微信
-            app.startActivity({
-                packageName: "com.tencent.mm",
-                className: "com.tencent.mm.plugin.offline.ui.WalletOfflineCoinPurseUI"
-            });
+        case 0: //微信  
+            try {
+                //直接唤醒付款页面
+                app.startActivity({
+                    packageName: "com.tencent.mm",
+                    className: "com.tencent.mm.plugin.offline.ui.WalletOfflineCoinPurseUI"
+                });
+                toastNew(1);
 
-            sleep(1000);
-            if (id("original_app_icon").exists()) {
-                id("original_app_icon").findOne().click();
+                if (isExistsById("original_app_icon")) {
+                    clickLxTyById("original_app_icon");
+                };
+
+            } catch (Exception) {
+                //连续点击到付款页面
+                if (launch("com.tencent.mm")) {
+                    toastNew(1);
+                    if (isExistsById("original_app_icon")) {
+                        clickLxTyById("original_app_icon");
+                    };
+
+                    if (clickLxTyByClass("android.widget.TextView", "我")) {
+                        if (clickLxTyByClass("android.widget.TextView", "支付")) {
+                            clickLxTyByClass("android.widget.TextView", "收付款");
+                        }
+                    };
+
+                } else {
+                    toast("错误！\n未安装微信或不支持此版本\n请安装或更新软件");
+                }
             }
 
             break;
         case 1: //支付宝
-            app.startActivity({
-                packageName: "com.eg.android.AlipayGphone",
-                className: "com.eg.android.AlipayGphone.AlipayLogin"
-            });
+            try {
+                app.startActivity({
+                    packageName: "com.eg.android.AlipayGphone",
+                    className: "com.eg.android.AlipayGphone.AlipayLogin"
+                });
+                toastNew(1);
 
-            while (true) {
-                if (className("android.widget.TextView").text("首页").exists()) {
-                    var BreakException = {}; //中断forEach的异常
-                    var bounds = className("android.widget.TextView").text("首页").findOne().bounds().toString();
-
-                    var x = Number(bounds.match(/\((\S*)\,/)[1]);
-                    var y = Number(bounds.match(/ (\S*) /)[1]);
-
-                    click(x, y);
-                    try {
-                        className("android.widget.ListView").findOne().children().forEach(child => {
-
-                            var target = child.findOne(className("android.widget.TextView").text("付钱"));
-                            var bounds = target.bounds().toString();
-
-                            if (!target) {
-                                throw BreakException;
-                            }
-
-                            var x = Number(bounds.match(/\((\S*)\,/)[1]);
-                            var y = Number(bounds.match(/ (\S*) /)[1]);
-                            click(x, y);
-                        });
-                    } catch (BreakException) {
-
-                    };
-
-                    break;
+                if (clickLxTyByClass("android.widget.TextView", "首页")) {
+                    clickLxTyByClass("android.widget.TextView", "付钱");
                 }
-            }
+
+            } catch (Exception) {
+                toast("错误！\n未安装支付宝或不支持此版本\n请安装或更新软件");
+            };
+            break;
     }
 }
 
@@ -265,60 +308,193 @@ function timer(m) {
             break;
     }
 
-    var TimeException = {}; //时间异常
-    try {
-        if (!isNaN(m) && m > 0 && m < 61) {
-            app.startActivity({
-                packageName: "com.smartisanos.clock",
-                className: "com.smartisanos.clock.activity.ClockActivity"
-            });
+    if (!isNaN(m) && m > 0 && m < 61) {
+        app.startActivity({
+            packageName: "com.smartisanos.clock",
+            className: "com.smartisanos.clock.activity.ClockActivity"
+        });
 
-            while (true) {
-                if (className("android.widget.RadioButton").text("计时器").exists()) {
-                    className("android.widget.RadioButton").text("计时器").findOne().click()
+        if (isExistsByClass("android.widget.RadioButton", "计时器")) {
+            toastNew(0);
+            sleep(1000);
+            clickLxTyByClass("android.widget.RadioButton", "计时器");
+            var bounds = id("high_light").findOne().bounds().toString();
 
-                    var bounds = id("high_light").findOne().bounds().toString();
+            var x = Number(bounds.match(/\((\S*)\,/)[1]);;
+            var y = Number(bounds.match(/ (\S*) /)[1]);
 
-                    var x = Number(bounds.match(/\((\S*)\,/)[1]);;
-                    var y = Number(bounds.match(/ (\S*) /)[1]);
+            var endY = y + 20 * m;
 
-                    var endY = y + 20 * m;
-
-                    sleep(200);
-                    swipe(x, y, x, endY, 10);
-                    break;
-                }
-            }
-        } else {
-            throw TimeException;
+            swipe(x, y, x, endY, 10);
         }
-
-    } catch (TimeException) {
+    } else {
         toast("时间有误！\n倒计时范围：1 ~ 60 分钟");
     }
 }
 
-// function call(content) {
-//     app.startActivity({
-//         packageName: "com.smartisanos.quicksearch",
-//         className: "com.android.quicksearchbox.SearchActivity"
-//     });
-//     console.log(content+"1");
-//     // id("search_bar_edit_text").findOne().setText("content");
-//     while(true) {
-//         console.log(content+"3");
-//         if (!id("search_bar_edit_text").findOne()) {
-//             console.log(content+"2");
-//         } else {
-//             id("search_bar_edit_text").findOne().longClick();
-//             break;
-//         }
-//     }
+//扫一扫
+function scanner(obj) {
+    switch (obj) {
+        case 0: //微信
+            try {
+                //直接唤醒扫一扫界面
+                app.startActivity({
+                    packageName: "com.tencent.mm",
+                    className: "com.tencent.mm.plugin.scanner.ui.BaseScanUI"
+                });
 
-//     console.log(content);
+                toastNew(1);
+                if (isExistsById("original_app_icon")) {
+                    clickLxTyById("original_app_icon");
+                };
+            } catch (Exception) {
+                //连续点击到扫一扫界面
+                if (launch("com.tencent.mm")) {
 
-//     // id("suggestions").findOne().children().forEach(child => {
-//     //     var target = child.findOne(id("btn_call"));
-//     //     target.click();
-//     //     });
-// }
+                    toastNew(1);
+                    if (isExistsById("original_app_icon")) {
+                        clickLxTyById("original_app_icon");
+                    };
+
+                    if (clickLxTyByClass("android.widget.TextView", "发现")) {
+                        clickLxTyByClass("android.widget.TextView", "扫一扫")
+                    };
+
+                } else {
+                    toast("错误！\n未安装微信或不支持此版本\n请安装或更新软件");
+                }
+            };
+            break;
+        case 1: //支付宝
+            try {
+                app.startActivity({
+                    packageName: "com.eg.android.AlipayGphone",
+                    className: "com.eg.android.AlipayGphone.AlipayLogin"
+                });
+
+                toastNew(1);
+                if (clickLxTyByClass("android.widget.TextView", "首页")) {
+                    clickLxTyByClass("android.widget.TextView", "扫一扫");
+                }
+
+            } catch (Exception) {
+                toast("错误！\n未安装支付宝或不支持此版本\n请安装或更新软件");
+            };
+            break;
+        default: toast("暂不支持");
+    }
+}
+
+//乘车码
+function busCode(obj) {
+    switch (obj) {
+        case 0: //微信
+            toast("暂不支持");
+            break;
+        case 1: //支付宝
+            try {
+                app.startActivity({
+                    packageName: "com.eg.android.AlipayGphone",
+                    className: "com.eg.android.AlipayGphone.AlipayLogin"
+                });
+
+                toastNew(1);
+                if (clickLxTyByClass("android.widget.TextView", "首页")) {
+                    if (clickLxTyByClass("android.widget.TextView", "付钱")) {
+                        clickLxTyByClass("android.widget.TextView", "乘车码");
+                    }
+                }
+
+            } catch (Exception) {
+                toast("错误！\n未安装支付宝或不支持此版本\n请安装或更新软件");
+            };
+            break;
+        default: toast("暂不支持");
+    }
+}
+
+//点击一个控件Class的左上角 附加一个参数,找到控件或者等待5s后退出
+function clickLxTyByClass(obj, var1) {
+
+    for (var i = 0; i < 6; i++) {
+        if (i == 5) {
+            toast("失败！");
+            return false;
+        }
+
+        if (className(obj).text(var1).exists()) {
+            var bounds = className(obj).text(var1).findOne().bounds().toString();
+            var x = Number(bounds.match(/\((\S*)\,/)[1]);
+            var y = Number(bounds.match(/ (\S*) /)[1]);
+            click(x, y);
+
+            return true;
+        }
+
+        sleep(700);
+    }
+}
+
+//点击一个控件id的左上角 附加一个参数,找到控件或者等待5s后退出
+function clickLxTyById(obj) {
+
+    for (var i = 0; i < 6; i++) {
+        if (i == 5) {
+            toast("失败！");
+            return false;
+        }
+
+        if (id(obj).exists()) {
+            var bounds = id(obj).findOne().bounds().toString();
+            var x = Number(bounds.match(/\((\S*)\,/)[1]);
+            var y = Number(bounds.match(/ (\S*) /)[1]);
+            click(x, y);
+
+            return true;
+        }
+
+        sleep(700);
+    }
+}
+
+//判断id控件是否存在
+function isExistsById(obj) {
+    for (var i = 0; i < 6; i++) {
+        if (i == 5) {
+            return false;
+        }
+
+        if (id(obj).exists()) {
+            return true;
+        }
+
+        sleep(700);
+    }
+}
+
+//判断class控件是否存在
+function isExistsByClass(obj, var1) {
+    for (var i = 0; i < 6; i++) {
+        if (i == 5) {
+            return false;
+        }
+
+        if (className(obj).text(var1).exists()) {
+            return true;
+        }
+
+        sleep(700);
+    }
+}
+
+//提醒函数
+function toastNew(var1) {
+    switch (var1) {
+        case 0:
+            toast("正在启动，请稍候……");
+            break;
+        case 1:
+            toast("正在启动，请不要点击屏幕");
+            break;
+    }
+}
