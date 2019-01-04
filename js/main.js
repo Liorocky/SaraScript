@@ -1,6 +1,9 @@
 "auto";
 
+auto.waitFor()
+
 toast("启动成功!\n请使用“闪念胶囊”唤醒语音识别");
+setScreenMetrics(1080, 1920);
 
 while (true) {
     if (!id("bubble_container").exists()) {
@@ -9,6 +12,7 @@ while (true) {
         var text = id("tv_title_small").findOne().text().replace(/。/, "")
         var textArr = text.split("");
         var key = "";
+
         if (textArr[0] + textArr[1] + textArr[2] == "提醒我") {
             //提醒功能
             id("bubble_sign_close").findOne().click();
@@ -17,7 +21,7 @@ while (true) {
                 key += textArr[i];
             };
             remind(key);
-        } else if (textArr[0] + textArr[1] + textArr[2] == "导航到") {
+        } else if (textArr[0] + textArr[1] == "导航") {
             //导航功能
             id("bubble_sign_close").findOne().click();
 
@@ -25,14 +29,24 @@ while (true) {
                 key += textArr[i];
             };
             map(key);
-        } else if (textArr[0] + textArr[3] + textArr[4] == "在查询") {
+        } else if (textArr[2] + textArr[3] == "查询"
+            || (textArr[3] + textArr[4] == "查询")
+            || (textArr[2] + textArr[3] == "搜索")
+            || (textArr[3] + textArr[4] == "搜索")) {
             //查询功能
             id("bubble_sign_close").findOne().click();
 
-            var obj = textArr[1] + textArr[2]; //使用什么软件查询
-            for (var i = 5; i < textArr.length; i++) {
-                key += textArr[i];
-            };
+            var obj;
+
+            textArr.some(function (value, index) {
+                if (value == "查" || value == "搜") {
+                    obj = textArr[index - 2] + textArr[index - 1]; //使用什么软件查询
+                    for (var i = index + 2; i < textArr.length; i++) {
+                        key += textArr[i];
+                    };
+                    return true;
+                }
+            })
 
             search(key, obj);
         } else if (textArr[0] + textArr[1] + textArr[2] == "打电话") {
@@ -54,9 +68,9 @@ while (true) {
             id("bubble_sign_close").findOne().click();
 
             var obj = 0;
-            if (textArr[0] + textArr[1] == "微信") {
+            if (textArr[textArr.length - 4] + textArr[textArr.length - 3] == "微信") {
 
-            } else if (textArr[0] + textArr[1] + textArr[2] == "支付宝") {
+            } else if (textArr[textArr.length - 5] + textArr[textArr.length - 4] + textArr[textArr.length - 3] == "支付宝") {
                 obj = 1;
             }
 
@@ -76,21 +90,20 @@ while (true) {
             id("bubble_sign_close").findOne().click();
 
             var obj = 0;
-            if (textArr[0] + textArr[1] == "微信") {
+            if (textArr[textArr.length - 5] + textArr[textArr.length - 4] == "微信") {
 
-            } else if (textArr[0] + textArr[1] + textArr[2] == "支付宝") {
+            } else if (textArr[textArr.length - 6] + textArr[textArr.length - 5] + textArr[textArr.length - 4] == "支付宝") {
                 obj = 1;
             }
-
             scanner(obj);
         } else if (textArr[textArr.length - 2] + textArr[textArr.length - 1] == "乘车") {
             //乘车码功能
             id("bubble_sign_close").findOne().click();
 
             var obj = 0;
-            if (textArr[0] + textArr[1] == "微信") {
+            if (textArr[textArr.length - 4] + textArr[textArr.length - 3] == "微信") {
 
-            } else if (textArr[0] + textArr[1] + textArr[2] == "支付宝") {
+            } else if (textArr[textArr.length - 5] + textArr[textArr.length - 4] + textArr[textArr.length - 3] == "支付宝") {
                 obj = 1;
             }
 
@@ -118,7 +131,7 @@ function remind(content) {
             className: "com.android.calendar.event.EditEventActivity"
         });
 
-        if (clickLxTyByClass("android.widget.Button", "完成")) {
+        if (clickCenterByClass("android.widget.Button", "完成")) {
             toast("创建成功！");
         };
 
@@ -140,7 +153,7 @@ function map(content) {
             className: "com.autonavi.map.activity.NewMapActivity"
         });
 
-        toast("正在使用高德地图查询地点，请稍等……");
+        toast("正在使用高德地图查询地点，请稍候……");
 
     } catch (Exception) {
         toast("错误！\n未安装高德地图或不支持此版本\n请安装或更新软件")
@@ -161,7 +174,7 @@ function search(content, obj) {
                     packageName: "com.taobao.taobao",
                     className: "com.taobao.search.sf.MainSearchResultActivity"
                 });
-                toast("正在使用" + obj + "查询，请稍等……");
+                toast("正在使用" + obj + "查询，请稍候……");
                 toast("查询结束后\n请连续点击“返回键”退出搜索页面");
             } catch (Exception) {
                 toast("错误！\n未安装淘宝或不支持此版本\n请安装或更新软件");
@@ -178,7 +191,7 @@ function search(content, obj) {
                     packageName: "com.jingdong.app.mall",
                     className: "com.jd.lib.search.view.Activity.ProductListActivity"
                 });
-                toast("正在使用" + obj + "查询，请稍等……");
+                toast("正在使用" + obj + "查询，请稍候……");
                 toast("查询结束后\n请连续点击“返回键”退出搜索页面");
             } catch (Exception) {
                 toast("错误！\n未安装京东或不支持此版本\n请安装或更新软件");
@@ -203,14 +216,11 @@ function tomatoTime(key) {
             }
 
             if (className("android.widget.TextView").text(key).exists()) {
-                var bounds = className("android.widget.TextView").text(key).findOne().bounds().toString();
-                var x = 900;
-                var y = Number(bounds.match(/ (\S*)\)/)[1]);
-                click(x, y);
+                var bounds = className("android.widget.TextView").text(key).findOne().bounds();
+                click(900, bounds.bottom);
 
                 return;
             }
-
             sleep(600);
         }
     } catch (Exception) {
@@ -231,7 +241,7 @@ function pay(obj) {
                 toastNew(1);
 
                 if (isExistsById("original_app_icon")) {
-                    clickLxTyById("original_app_icon");
+                    clickCenterById("original_app_icon");
                 };
 
             } catch (Exception) {
@@ -239,12 +249,12 @@ function pay(obj) {
                 if (launch("com.tencent.mm")) {
                     toastNew(1);
                     if (isExistsById("original_app_icon")) {
-                        clickLxTyById("original_app_icon");
+                        clickCenterById("original_app_icon");
                     };
 
-                    if (clickLxTyByClass("android.widget.TextView", "我")) {
-                        if (clickLxTyByClass("android.widget.TextView", "支付")) {
-                            clickLxTyByClass("android.widget.TextView", "收付款");
+                    if (clickCenterByClass("android.widget.TextView", "我")) {
+                        if (clickTimerByText("支付")) {
+                            clickTimerByText("收付款");
                         }
                     };
 
@@ -262,8 +272,8 @@ function pay(obj) {
                 });
                 toastNew(1);
 
-                if (clickLxTyByClass("android.widget.TextView", "首页")) {
-                    clickLxTyByClass("android.widget.TextView", "付钱");
+                if (clickTimerByText("首页")) {
+                    clickTimerByText("付钱");
                 }
 
             } catch (Exception) {
@@ -317,15 +327,22 @@ function timer(m) {
         if (isExistsByClass("android.widget.RadioButton", "计时器")) {
             toastNew(0);
             sleep(1000);
-            clickLxTyByClass("android.widget.RadioButton", "计时器");
-            var bounds = id("high_light").findOne().bounds().toString();
+            clickTimerByText("计时器");
 
-            var x = Number(bounds.match(/\((\S*)\,/)[1]);;
-            var y = Number(bounds.match(/ (\S*) /)[1]);
+            var bounds = id("high_light").findOne().bounds();
+            var rate = bounds.centerY() / 329; //缩放比
 
-            var endY = y + 20 * m;
+            try {
+                if (rate != 1) {
+                    throw Exception;
+                }
+                var endY = bounds.centerY() + 20 * rate * m;
 
-            swipe(x, y, x, endY, 10);
+                swipe(bounds.centerX(), bounds.centerY(), bounds.centerX(), endY, 10);
+                click(100, 1500);
+            } catch (Exception) {
+                toast("暂不支持此设备，请联系开发者");
+            }
         }
     } else {
         toast("时间有误！\n倒计时范围：1 ~ 60 分钟");
@@ -345,7 +362,7 @@ function scanner(obj) {
 
                 toastNew(1);
                 if (isExistsById("original_app_icon")) {
-                    clickLxTyById("original_app_icon");
+                    clickCenterById("original_app_icon");
                 };
             } catch (Exception) {
                 //连续点击到扫一扫界面
@@ -353,11 +370,10 @@ function scanner(obj) {
 
                     toastNew(1);
                     if (isExistsById("original_app_icon")) {
-                        clickLxTyById("original_app_icon");
+                        clickCenterById("original_app_icon");
                     };
-
-                    if (clickLxTyByClass("android.widget.TextView", "发现")) {
-                        clickLxTyByClass("android.widget.TextView", "扫一扫")
+                    if (clickTimerByText("发现")) {
+                        clickTimerByText("扫一扫")
                     };
 
                 } else {
@@ -373,8 +389,8 @@ function scanner(obj) {
                 });
 
                 toastNew(1);
-                if (clickLxTyByClass("android.widget.TextView", "首页")) {
-                    clickLxTyByClass("android.widget.TextView", "扫一扫");
+                if (clickTimerByText("首页")) {
+                    clickTimerByText("扫一扫");
                 }
 
             } catch (Exception) {
@@ -389,8 +405,8 @@ function scanner(obj) {
 function busCode(obj) {
     switch (obj) {
         case 0: //微信
+            toast("该功能不稳定，请保证微信乘车码已添加至‘一步’中，且置顶在最上面。");
             toastNew(1);
-            setScreenMetrics(1080, 1920);
             swipe(1060, 10, 820, 360, 200);
             sleep(300);
             swipe(1000, 400, 1000, 4000, 200);
@@ -406,9 +422,10 @@ function busCode(obj) {
                 });
 
                 toastNew(1);
-                if (clickLxTyByClass("android.widget.TextView", "首页")) {
-                    if (clickLxTyByClass("android.widget.TextView", "付钱")) {
-                        clickLxTyByClass("android.widget.TextView", "乘车码");
+
+                if (clickTimerByText("首页")) {
+                    if (clickTimerByText("付钱")) {
+                        clickTimerByText("乘车码");
                     }
                 }
 
@@ -420,8 +437,44 @@ function busCode(obj) {
     }
 }
 
-//点击一个控件Class的左上角 附加一个参数,找到控件或者等待5s后退出
-function clickLxTyByClass(obj, var1) {
+
+//点击一个Class控件 text参数,点击到或者等待5s后退出
+function clickTimerByText(text) {
+
+    for (var i = 0; i < 6; i++) {
+        if (i == 5) {
+            toast("失败！");
+            return false;
+        }
+
+        if (click(text)) {
+            return true;
+        }
+
+        sleep(700);
+    }
+}
+
+//点击一个Class控件 text参数 
+//i {number} 如果相同的文本在屏幕中出现多次，则i表示要点击第几个文本, i从0开始计算,点击到或者等待5s后退出
+function clickTimerByText(text, i) {
+
+    for (var i = 0; i < 6; i++) {
+        if (i == 5) {
+            toast("失败！");
+            return false;
+        }
+
+        if (click(text), i) {
+            return true;
+        }
+
+        sleep(700);
+    }
+}
+
+//点击一个Class控件 text参数,找到控件或者等待5s后退出
+function clickCenterByClass(obj, var1) {
 
     for (var i = 0; i < 6; i++) {
         if (i == 5) {
@@ -430,10 +483,8 @@ function clickLxTyByClass(obj, var1) {
         }
 
         if (className(obj).text(var1).exists()) {
-            var bounds = className(obj).text(var1).findOne().bounds().toString();
-            var x = Number(bounds.match(/\((\S*)\,/)[1]);
-            var y = Number(bounds.match(/ (\S*) /)[1]);
-            click(x, y);
+            var widget = className(obj).text(var1).findOne();
+            click(widget.bounds().centerX(), widget.bounds().centerY());
 
             return true;
         }
@@ -442,8 +493,8 @@ function clickLxTyByClass(obj, var1) {
     }
 }
 
-//点击一个控件id的左上角 附加一个参数,找到控件或者等待5s后退出
-function clickLxTyById(obj) {
+//点击一个id控件 text参数,找到控件或者等待5s后退出
+function clickCenterById(obj) {
 
     for (var i = 0; i < 6; i++) {
         if (i == 5) {
@@ -452,10 +503,8 @@ function clickLxTyById(obj) {
         }
 
         if (id(obj).exists()) {
-            var bounds = id(obj).findOne().bounds().toString();
-            var x = Number(bounds.match(/\((\S*)\,/)[1]);
-            var y = Number(bounds.match(/ (\S*) /)[1]);
-            click(x, y);
+            var widget = id(obj).findOne();
+            click(widget.bounds().centerX(), widget.bounds().centerY());
 
             return true;
         }
