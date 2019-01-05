@@ -1,9 +1,17 @@
-"auto";
-
-auto.waitFor()
-
-toast("启动成功!\n请使用“闪念胶囊”唤醒语音识别");
-setScreenMetrics(1080, 1920);
+for (var i = 0; i < 20; i++) {
+    try {
+        auto();
+        toast("启动成功!\n请使用“闪念胶囊”唤醒语音识别");
+        toast("按“音量上键”会关闭软件\n可前往软件设置中取消该功能");
+        setScreenMetrics(1080, 1920);
+        break;
+    } catch (Exception) {
+        if (i == 0) {
+            toast("辅助功能未启动\n请向上滑动找到 SaraScript\n启动该服务");
+        }
+    }
+    sleep(1000);
+}
 
 while (true) {
     if (!id("bubble_container").exists()) {
@@ -272,8 +280,7 @@ function pay(obj) {
                 });
                 toastNew(1);
 
-                if (clickTimerByText("首页")) {
-                    sleep(100);
+                if (clickCenterByClass("android.widget.TextView", "首页")) {
                     clickTimerByText("付钱");
                 }
 
@@ -426,7 +433,7 @@ function busCode(obj) {
 
                 toastNew(1);
 
-                if (clickTimerByText("首页")) {
+                if (clickCenterByClass("android.widget.TextView", "首页")) {
                     if (clickTimerByText("付钱")) {
                         clickTimerByText("乘车码");
                     }
@@ -444,8 +451,9 @@ function busCode(obj) {
 //点击一个Class控件 text参数,点击到或者等待5s后退出
 function clickTimerByText(text) {
 
-    for (var i = 0; i < 6; i++) {
-        if (i == 5) {
+    for (var i = 0; i < 20; i++) {
+        sleep(200);
+        if (i == 19) {
             toast("失败！");
             return false;
         }
@@ -453,8 +461,6 @@ function clickTimerByText(text) {
         if (click(text)) {
             return true;
         }
-
-        sleep(700);
     }
 }
 
@@ -462,8 +468,9 @@ function clickTimerByText(text) {
 //i {number} 如果相同的文本在屏幕中出现多次，则i表示要点击第几个文本, i从0开始计算,点击到或者等待5s后退出
 function clickTimerByText(text, i) {
 
-    for (var i = 0; i < 6; i++) {
-        if (i == 5) {
+    for (var i = 0; i < 20; i++) {
+        sleep(200);
+        if (i == 19) {
             toast("失败！");
             return false;
         }
@@ -471,16 +478,15 @@ function clickTimerByText(text, i) {
         if (click(text), i) {
             return true;
         }
-
-        sleep(700);
     }
 }
 
 //点击一个Class控件 text参数,找到控件或者等待5s后退出
 function clickCenterByClass(obj, var1) {
 
-    for (var i = 0; i < 6; i++) {
-        if (i == 5) {
+    for (var i = 0; i < 20; i++) {
+        sleep(200);
+        if (i == 19) {
             toast("失败！");
             return false;
         }
@@ -491,16 +497,15 @@ function clickCenterByClass(obj, var1) {
 
             return true;
         }
-
-        sleep(700);
     }
 }
 
 //点击一个id控件 text参数,找到控件或者等待5s后退出
 function clickCenterById(obj) {
 
-    for (var i = 0; i < 6; i++) {
-        if (i == 5) {
+    for (var i = 0; i < 20; i++) {
+        sleep(200);
+        if (i == 19) {
             toast("失败！");
             return false;
         }
@@ -511,38 +516,34 @@ function clickCenterById(obj) {
 
             return true;
         }
-
-        sleep(700);
     }
 }
 
 //判断id控件是否存在
 function isExistsById(obj) {
-    for (var i = 0; i < 6; i++) {
-        if (i == 5) {
+    for (var i = 0; i < 20; i++) {
+        sleep(200);
+        if (i == 19) {
             return false;
         }
 
         if (id(obj).exists()) {
             return true;
         }
-
-        sleep(700);
     }
 }
 
 //判断class控件是否存在
 function isExistsByClass(obj, var1) {
-    for (var i = 0; i < 6; i++) {
-        if (i == 5) {
+    for (var i = 0; i < 20; i++) {
+        sleep(200);
+        if (i == 19) {
             return false;
         }
 
         if (className(obj).text(var1).exists()) {
             return true;
         }
-
-        sleep(700);
     }
 }
 
