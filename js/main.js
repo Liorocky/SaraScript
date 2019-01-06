@@ -151,8 +151,8 @@ function remind(content) {
             className: "com.android.calendar.event.EditEventActivity"
         });
 
-        if (isExistsByClass("android.widget.Button", "完成")) {
-            clickCenterByClass("android.widget.Button", "完成")
+        if (hasWidgetByClass("android.widget.Button", "完成")) {
+            clickWidgetCenterByClass("android.widget.Button", "完成")
             toast("创建成功！");
         };
 
@@ -273,7 +273,7 @@ function pay(obj) {
 
                     id("d3t").className("android.widget.TextView").text("我").findOne().parent().parent().click();
                     if (click("支付")) {
-                        clickTimerByText("收付款");
+                        clickWidgetTimerByText("收付款");
                     };
 
                 } else {
@@ -290,7 +290,7 @@ function pay(obj) {
                 });
                 toastNew(1);
 
-                if (isExistsByClass("android.widget.TextView", "首页")) {
+                if (hasWidgetByClass("android.widget.TextView", "首页")) {
                     click("首页");
                     click("付钱");
                 }
@@ -344,7 +344,7 @@ function timer(m) {
             className: "com.smartisanos.clock.activity.ClockActivity"
         });
 
-        if (isExistsByClass("android.widget.RadioButton", "计时器")) {
+        if (hasWidgetByClass("android.widget.RadioButton", "计时器")) {
             toastNew(0);
             sleep(1000);
             click("计时器");
@@ -390,7 +390,7 @@ function scanner(obj) {
                     clickMainWeChat();
 
                     id("d3t").className("android.widget.TextView").text("发现").findOne().parent().parent().click();
-                    clickTimerByText("扫一扫");
+                    clickWidgetTimerByText("扫一扫");
 
                 } else {
                     toast("错误！\n未安装微信或不支持此版本\n请安装或更新软件");
@@ -406,7 +406,7 @@ function scanner(obj) {
 
                 toastNew(1);
 
-                if (isExistsByClass("android.widget.TextView", "首页")) {
+                if (hasWidgetByClass("android.widget.TextView", "首页")) {
                     click("首页");
                     click("扫一扫");
                 }
@@ -441,7 +441,7 @@ function busCode(obj) {
 
                 toastNew(1);
 
-                if (isExistsByClass("android.widget.TextView", "首页")) {
+                if (hasWidgetByClass("android.widget.TextView", "首页")) {
                     click("首页");
                     click("付钱");
                     click("乘车码");
@@ -456,7 +456,7 @@ function busCode(obj) {
 }
 
 //点击一个Class控件 text参数,点击到或者等待5s后退出
-function clickTimerByText(text) {
+function clickWidgetTimerByText(text) {
 
     for (var i = 0; i < 5000 / speed; i++) {
 
@@ -474,7 +474,7 @@ function clickTimerByText(text) {
 
 //点击一个Class控件 text参数 
 //i {number} 如果相同的文本在屏幕中出现多次，则i表示要点击第几个文本, i从0开始计算,点击到或者等待5s后退出
-function clickTimerByText(text, i) {
+function clickWidgetTimerByText(text, i) {
 
     for (var i = 0; i < 5000 / speed; i++) {
 
@@ -491,7 +491,7 @@ function clickTimerByText(text, i) {
 }
 
 //点击一个Class控件中心 text参数
-function clickCenterByClass(obj, text) {
+function clickWidgetCenterByClass(obj, text) {
     setScreenMetrics(device.width, device.height);
     var widget = className(obj).text(text).findOne();
     click(widget.bounds().centerX(), widget.bounds().centerY());
@@ -499,7 +499,7 @@ function clickCenterByClass(obj, text) {
 }
 
 //点击一个id控件中心
-function clickCenterById(obj) {
+function clickWidgetCenterById(obj) {
     setScreenMetrics(device.width, device.height);
     var widget = id(obj).findOne();
     click(widget.bounds().centerX(), widget.bounds().centerY());
@@ -507,7 +507,7 @@ function clickCenterById(obj) {
 }
 
 //判断id控件是否存在
-function isExistsById(obj) {
+function hasWidgetById(obj) {
     for (var i = 0; i < 5000 / speed; i++) {
 
         if (i == 5000 / speed - 1) {
@@ -522,7 +522,7 @@ function isExistsById(obj) {
 }
 
 //判断class控件是否存在
-function isExistsByClass(obj, var1) {
+function hasWidgetByClass(obj, var1) {
     for (var i = 0; i < 5000 / speed; i++) {
 
         if (i == 5000 / speed - 1) {
@@ -551,8 +551,8 @@ function toastNew(var1) {
 //点击主微信
 function clickMainWeChat() {
     if (doubleWechat == 0) {
-        if (isExistsById("original_app_icon")) {
-            clickCenterById("original_app_icon");
+        if (hasWidgetById("original_app_icon")) {
+            clickWidgetCenterById("original_app_icon");
         };
     };
 }
