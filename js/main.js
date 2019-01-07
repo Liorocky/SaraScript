@@ -21,13 +21,13 @@ while (true) {
     if (!id("iv_bubble_play").exists()) {
 
     } else {
+
         var text = id("tv_title_small").findOne().text().replace(/。/, "").replace(/\s/g, "");//关键字，去中文句号，去空格
         var textArr = text.split("");
         var key = "";
 
         if (textArr[0] + textArr[1] + textArr[2] == "提醒我") {
             //提醒功能
-            // id("bubble_sign_close").findOne().click();
             delBubble();
             for (var i = 3; i < textArr.length; i++) {
                 key += textArr[i];
@@ -36,7 +36,6 @@ while (true) {
             remind(key);
         } else if (textArr[0] + textArr[1] == "导航") {
             //导航功能
-            // id("bubble_sign_close").findOne().click();
             delBubble();
 
             for (var i = 3; i < textArr.length; i++) {
@@ -49,7 +48,6 @@ while (true) {
             || (textArr[2] + textArr[3] == "搜索")
             || (textArr[3] + textArr[4] == "搜索")) {
             //查询功能
-            // id("bubble_sign_close").findOne().click();
             delBubble();
 
             var obj;
@@ -67,7 +65,6 @@ while (true) {
         } else if (textArr[0] + textArr[1] == "开始") {
             //开始番茄计时
             if (getAppName("com.plan.kot32.tomatotime")) {
-                // id("bubble_sign_close").findOne().click();
                 delBubble();
 
                 for (var i = 2; i < textArr.length; i++) {
@@ -80,7 +77,6 @@ while (true) {
             }
         } else if (textArr[textArr.length - 2] + textArr[textArr.length - 1] == "付款") {
             //付款
-            // id("bubble_sign_close").findOne().click();
             delBubble();
 
             var obj = -1;
@@ -93,7 +89,6 @@ while (true) {
             pay(obj);
         } else if (textArr[0] + textArr[1] + textArr[2] == "倒计时") {
             //倒计时功能
-            // id("bubble_sign_close").findOne().click();
             delBubble();
 
             if (textArr[textArr.length - 1] != "钟") {
@@ -106,7 +101,6 @@ while (true) {
         } else if (textArr[textArr.length - 3] + textArr[textArr.length - 2] + textArr[textArr.length - 1] == "扫一扫"
             || textArr[textArr.length - 2] + textArr[textArr.length - 1] == "扫码") {
             //扫一扫功能
-            // id("bubble_sign_close").findOne().click();
             delBubble();
 
             var obj = -1;
@@ -122,7 +116,6 @@ while (true) {
         } else if (textArr[textArr.length - 2] + textArr[textArr.length - 1] == "乘车"
             || textArr[textArr.length - 3] + textArr[textArr.length - 2] + textArr[textArr.length - 1] == "乘车码") {
             //乘车码功能
-            // id("bubble_sign_close").findOne().click();
             delBubble();
 
             var obj = -1;
@@ -139,7 +132,6 @@ while (true) {
             || textArr[0] + textArr[1] == "打开"
             || textArr[0] + textArr[1] == "运行") {
             //打开程序功能
-            // id("bubble_sign_close").findOne().click();
             delBubble();
 
             var obj = text.slice(2);
@@ -148,7 +140,6 @@ while (true) {
         } else if (textArr[textArr.length - 2] + textArr[textArr.length - 1] == "收钱"
             || textArr[textArr.length - 2] + textArr[textArr.length - 1] == "收款") {
             //收钱功能
-            // id("bubble_sign_close").findOne().click();
             delBubble();
 
             var obj = -1;
@@ -159,10 +150,12 @@ while (true) {
             }
 
             collect(obj);
-        } else {
+        } else if (id("title").exists()) {
             //打电话功能
-            call();
-        };
+            if (id("title").findOne().text() == "联系人") {
+                call();
+            }
+        }
 
         text = "";
         textArr = text.split("");
@@ -489,14 +482,13 @@ function busCode(obj) {
 //打电话
 function call() {
     var count = 0;
-    if (hasWidgetTextById("title", "联系人")) {
-        id("item_layout").untilFind().forEach(child => {
-            count++;
-        });
 
-        if (count == 1) {
-            id("item_layout").findOne().click();
-        }
+    id("item_layout").untilFind().forEach(child => {
+        count++;
+    });
+
+    if (count == 1) {
+        id("item_layout").findOne().click();
     }
 }
 
@@ -717,7 +709,7 @@ function toastNew(var1) {
             break;
         case 1:
             toast("正在启动，请不要点击屏幕");
-            break;            
+            break;
     }
 }
 
