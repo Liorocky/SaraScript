@@ -20,7 +20,6 @@ try {
         for (var i = 0; i < 10; i++) {
             try {
                 auto();
-                console.log("1");
                 StoragesMode.put("AutoMode", true);
                 break;
             } catch (Exception) {
@@ -40,6 +39,7 @@ try {
     toast("按“音量上键”会关闭软件\n可前往软件设置中取消该功能");
     setScreenMetrics(1080, 1920);
     var speed = 10; //点击速度
+    var temp = ""; //当联系人有多个的时候，避免重复操作而卡死
 
     if (dialogs.select("有无双开微信？", "有", "没有双开微信") == 0) {
         StoragesMode.put("DoubleWechatMode", true);
@@ -51,7 +51,6 @@ try {
 
     while (StoragesMode.get("MainMode")) {
         if (!id("iv_bubble_play").exists()) {
-
         } else {
             var text = id("tv_title_small").findOne().text().replace(/。/, "").replace(/\s/g, "");//命令，去中文句号，去空格
             var textArr = text.split(""); //命令数组
@@ -83,7 +82,7 @@ function remind() {
 
             for (var i = 3; i < textArr.length; i++) {
                 key += textArr[i];
-            };
+            }
 
             try {
                 app.startActivity({
@@ -99,8 +98,7 @@ function remind() {
                 if (isExistsByClass("android.widget.Button", "完成")) {
                     clickCenterByClass("android.widget.Button", "完成")
                     toast("创建成功！");
-                };
-
+                }
             } catch (Exception) {
                 toast("创建失败！");
             }
@@ -159,42 +157,46 @@ function search() {
                 }
             })
 
-            switch (obj) {
-                case "淘宝":
-                    try {
-                        app.startActivity({
-                            action: "android.intent.action.SEND",
-                            type: "text/plain",
-                            extras: {
-                                "android.intent.extra.TEXT": key
-                            },
-                            packageName: "com.taobao.taobao",
-                            className: "com.taobao.search.sf.MainSearchResultActivity"
-                        });
-                        toast("正在使用" + obj + "查询，请稍候……");
-                        toast("查询结束后\n请连续点击“返回键”退出搜索页面");
-                    } catch (Exception) {
-                        toast("错误！\n未安装淘宝或不支持此版本\n请安装或更新软件");
-                    }
-                    break;
-                case "京东":
-                    try {
-                        app.startActivity({
-                            action: "android.intent.action.SEND",
-                            type: "text/plain",
-                            extras: {
-                                "android.intent.extra.TEXT": key
-                            },
-                            packageName: "com.jingdong.app.mall",
-                            className: "com.jd.lib.search.view.Activity.ProductListActivity"
-                        });
-                        toast("正在使用" + obj + "查询，请稍候……");
-                        toast("查询结束后\n请连续点击“返回键”退出搜索页面");
-                    } catch (Exception) {
-                        toast("错误！\n未安装京东或不支持此版本\n请安装或更新软件");
-                    }
-                    break;
-                default: toast("暂不支持");
+            if (key != "") {
+                switch (obj) {
+                    case "淘宝":
+                        try {
+                            app.startActivity({
+                                action: "android.intent.action.SEND",
+                                type: "text/plain",
+                                extras: {
+                                    "android.intent.extra.TEXT": key
+                                },
+                                packageName: "com.taobao.taobao",
+                                className: "com.taobao.search.sf.MainSearchResultActivity"
+                            });
+                            toast("正在使用" + obj + "查询，请稍候……");
+                            toast("查询结束后\n请连续点击“返回键”退出搜索页面");
+                        } catch (Exception) {
+                            toast("错误！\n未安装淘宝或不支持此版本\n请安装或更新软件");
+                        }
+                        break;
+                    case "京东":
+                        try {
+                            app.startActivity({
+                                action: "android.intent.action.SEND",
+                                type: "text/plain",
+                                extras: {
+                                    "android.intent.extra.TEXT": key
+                                },
+                                packageName: "com.jingdong.app.mall",
+                                className: "com.jd.lib.search.view.Activity.ProductListActivity"
+                            });
+                            toast("正在使用" + obj + "查询，请稍候……");
+                            toast("查询结束后\n请连续点击“返回键”退出搜索页面");
+                        } catch (Exception) {
+                            toast("错误！\n未安装京东或不支持此版本\n请安装或更新软件");
+                        }
+                        break;
+                    default: toast("暂不支持");
+                }
+            } else {
+                toast("查询内容为空");
             }
         }
     }
@@ -628,21 +630,20 @@ function collect() {
 
 //打电话
 function call() {
-    if (StoragesMode.get("CallMode")) {
-        if (id("title").exists()) {
-            //打电话功能
-            if (id("title").findOne().text() == "联系人") {
-                var count = 0;
-
-                id("item_layout").untilFind().forEach(child => {
-                    count++;
-                });
-
-                if (count == 1) {
-                    id("item_layout").findOne().click();
-                }
+    if (StoragesMode.get("CallMode") && temp != text) {
+        if (id("btn_call").exists()) {
+            var count = 0;
+            id("item_layout").untilFind().forEach(child => {
+                count++;
+            });
+            if (count == 1) {
+                id("item_layout").findOne().click();
+                sleep(1000);
+                temo = "";
+                return true;
             }
         }
+        temp = text;
     }
 }
 
