@@ -54,19 +54,25 @@ try {
         } else {
             var text = id("tv_title_small").findOne().text().replace(/。/, "").replace(/\s/g, "");//命令，去中文句号，去空格
             var textArr = text.split(""); //命令数组
-            var key = ""; //功能关键字
+            var key = ""; //功能关键字 
 
-            remind(); //提醒功能
-            map(); //导航功能
-            search(); //查询功能
-            tomatoTime(); //番茄计时功能
-            pay(); //支付功能
-            timer(); //倒计时功能
-            scanner(); //扫码功能
-            busCode(); //乘车码功能
-            openApp(); //打开 APP 功能
-            collect(); //收款功能
-            call(); //打电话功能
+            var target = parsing(text);
+            switch (target.action) {
+                case "remind": remind(); break;
+                case "map": map(); break;
+                case "search": search(); break;
+                case "tomatoTime": tomatoTime(); break;
+                case "pay": pay(); break;
+                case "timer": timer(); break;
+                case "scanner": scanner(); break;
+                case "busCode": busCode(); break;
+                case "openApp": openApp(); break;
+                case "collect": collect(); break;
+                case "call": call(); break;
+                default: ;
+            }
+            console.log(target);
+
         }
         sleep(200);
     }
@@ -77,61 +83,54 @@ try {
 //提醒功能
 function remind() {
     if (StoragesMode.get("RemindMode")) {
-        if (textArr[0] + textArr[1] + textArr[2] == "提醒我") {
-            delBubble();
+        delBubble();
 
-            for (var i = 3; i < textArr.length; i++) {
-                key += textArr[i];
+        try {
+            app.startActivity({
+                action: "android.intent.action.SEND",
+                type: "text/*",
+                extras: {
+                    "android.intent.extra.TEXT": target.events
+                },
+                packageName: "com.android.calendar",
+                className: "com.android.calendar.event.EditEventActivity"
+            });
+
+            if (isExistsByClass("android.widget.Button", "完成")) {
+                clickCenterByClass("android.widget.Button", "完成")
+                toast("创建成功！");
+                return true;
             }
-
-            try {
-                app.startActivity({
-                    action: "android.intent.action.SEND",
-                    type: "text/*",
-                    extras: {
-                        "android.intent.extra.TEXT": key
-                    },
-                    packageName: "com.android.calendar",
-                    className: "com.android.calendar.event.EditEventActivity"
-                });
-
-                if (isExistsByClass("android.widget.Button", "完成")) {
-                    clickCenterByClass("android.widget.Button", "完成")
-                    toast("创建成功！");
-                }
-            } catch (Exception) {
-                toast("创建失败！");
-            }
+        } catch (Exception) {
+            toast("创建失败！");
+            return false;
         }
+
     }
 }
 
 //导航功能
 function map() {
     if (StoragesMode.get("MapMode")) {
-        if (textArr[0] + textArr[1] == "导航") {
-            delBubble();
+        delBubble();
 
-            for (var i = 3; i < textArr.length; i++) {
-                key += textArr[i];
-            };
+        try {
+            app.startActivity({
+                action: "android.intent.action.SEND",
+                type: "text/plain",
+                extras: {
+                    "android.intent.extra.TEXT": target.events
+                },
+                packageName: "com.autonavi.minimap",
+                className: "com.autonavi.map.activity.NewMapActivity"
+            });
 
-            try {
-                app.startActivity({
-                    action: "android.intent.action.SEND",
-                    type: "text/plain",
-                    extras: {
-                        "android.intent.extra.TEXT": key
-                    },
-                    packageName: "com.autonavi.minimap",
-                    className: "com.autonavi.map.activity.NewMapActivity"
-                });
+            toast("正在使用高德地图查询地点，请稍候……");
+            return true;
 
-                toast("正在使用高德地图查询地点，请稍候……");
-
-            } catch (Exception) {
-                toast("错误！\n未安装高德地图或不支持此版本\n请安装或更新软件")
-            }
+        } catch (Exception) {
+            toast("错误！\n未安装高德地图或不支持此版本\n请安装或更新软件")
+            return false;
         }
     }
 }
@@ -139,65 +138,44 @@ function map() {
 //查询功能
 function search() {
     if (StoragesMode.get("SearchMode")) {
-        if (textArr[2] + textArr[3] == "查询"
-            || (textArr[3] + textArr[4] == "查询")
-            || (textArr[2] + textArr[3] == "搜索")
-            || (textArr[3] + textArr[4] == "搜索")) {
-            delBubble();
+        delBubble();
 
-            var obj;
-
-            textArr.some(function (value, index) {
-                if (value == "查" || value == "搜") {
-                    obj = textArr[index - 2] + textArr[index - 1]; //使用什么软件查询
-                    for (var i = index + 2; i < textArr.length; i++) {
-                        key += textArr[i];
-                    };
-                    return true;
+        switch (target.obj) {
+            case "淘宝":
+                try {
+                    app.startActivity({
+                        action: "android.intent.action.SEND",
+                        type: "text/plain",
+                        extras: {
+                            "android.intent.extra.TEXT": target.events
+                        },
+                        packageName: "com.taobao.taobao",
+                        className: "com.taobao.search.sf.MainSearchResultActivity"
+                    });
+                    toast("正在使用淘宝查询，请稍候……");
+                    toast("查询结束后\n请连续点击“返回键”退出搜索页面");
+                } catch (Exception) {
+                    toast("错误！\n未安装淘宝或不支持此版本\n请安装或更新软件");
                 }
-            })
-
-            if (key != "") {
-                switch (obj) {
-                    case "淘宝":
-                        try {
-                            app.startActivity({
-                                action: "android.intent.action.SEND",
-                                type: "text/plain",
-                                extras: {
-                                    "android.intent.extra.TEXT": key
-                                },
-                                packageName: "com.taobao.taobao",
-                                className: "com.taobao.search.sf.MainSearchResultActivity"
-                            });
-                            toast("正在使用" + obj + "查询，请稍候……");
-                            toast("查询结束后\n请连续点击“返回键”退出搜索页面");
-                        } catch (Exception) {
-                            toast("错误！\n未安装淘宝或不支持此版本\n请安装或更新软件");
-                        }
-                        break;
-                    case "京东":
-                        try {
-                            app.startActivity({
-                                action: "android.intent.action.SEND",
-                                type: "text/plain",
-                                extras: {
-                                    "android.intent.extra.TEXT": key
-                                },
-                                packageName: "com.jingdong.app.mall",
-                                className: "com.jd.lib.search.view.Activity.ProductListActivity"
-                            });
-                            toast("正在使用" + obj + "查询，请稍候……");
-                            toast("查询结束后\n请连续点击“返回键”退出搜索页面");
-                        } catch (Exception) {
-                            toast("错误！\n未安装京东或不支持此版本\n请安装或更新软件");
-                        }
-                        break;
-                    default: toast("暂不支持");
+                break;
+            case "京东":
+                try {
+                    app.startActivity({
+                        action: "android.intent.action.SEND",
+                        type: "text/plain",
+                        extras: {
+                            "android.intent.extra.TEXT": target.events
+                        },
+                        packageName: "com.jingdong.app.mall",
+                        className: "com.jd.lib.search.view.Activity.ProductListActivity"
+                    });
+                    toast("正在使用京东查询，请稍候……");
+                    toast("查询结束后\n请连续点击“返回键”退出搜索页面");
+                } catch (Exception) {
+                    toast("错误！\n未安装京东或不支持此版本\n请安装或更新软件");
                 }
-            } else {
-                toast("查询内容为空");
-            }
+                break;
+            default: toast("暂不支持");
         }
     }
 }
@@ -808,4 +786,141 @@ function delBubble() {
             click(527, 117);
         }
     }
+}
+
+
+function parsing(text) {
+    var textArr = text.split(""); //分割命令
+    var action;
+    var obj;
+    var events;
+    var mode;
+    var result = {
+        "action": action,
+        "obj": obj,
+        "events": events,
+        "mode": mode
+    }
+
+    //提醒
+    if (text.search("提醒") != -1) {
+        action = "remind";
+        events = text.replace(/提醒/i, "");
+        result = {
+            "action": action,
+            "obj": obj,
+            "events": events
+        }
+        return result;
+    }
+
+    //导航
+    if (text.search("导航到") != -1 || text.search("导航去") != -1 || text.search("导航至") != -1) {
+        action = "map";
+        events = text.replace(/导航去/i, "")
+        if (events == text) {
+            events = text.replace(/导航到/i, "")
+            if (events == text) {
+                events = text.replace(/导航至/i, "")
+            }
+        }
+
+        result = {
+            "action": action,
+            "events": events
+        }
+        return result;
+    }
+
+    //查询
+    if ((/(在|用|使用).*(搜索|查询)/g.exec(text)) != null) {
+        action = "search";
+        events = text.match(/(搜索|查询)(\S*)/)[2];
+        obj = text.match(/(在|用|使用)(\S*)(搜索|查询)/)[2];
+        result = {
+            "action": action,
+            "obj": obj,
+            "events": events
+        }
+        return result;
+    }
+
+    //付款
+    if ((/(付款)/g.exec(text)) != null) {
+        action = "pay";
+        obj = text.match(/(微信|支付宝)/)[1];
+        result = {
+            "action": action,
+            "obj": obj,
+        }
+        return result;
+    }
+
+    //倒计时
+    if ((/(倒计时)/g.exec(text)) != null) {
+        action = "timer";
+        events = text.match(/(倒计时)(\S*)/)[2];
+        result = {
+            "action": action,
+            "events": events,
+        }
+        return result;
+    }
+
+    //扫码
+    if ((/(扫一扫|扫码)/g.exec(text)) != null) {
+        action = "scanner";
+        obj = text.match(/(微信|支付宝)/)[1];
+        result = {
+            "action": action,
+            "obj": obj
+        }
+        return result;
+    }
+
+    //乘车码
+    if ((/(微信乘车|支付宝乘车)/g.exec(text)) != null) {
+        action = "busCode";
+        obj = text.match(/(微信|支付宝)/)[1];
+        result = {
+            "action": action,
+            "obj": obj
+        }
+        return result;
+    }
+
+    //打开程序
+    if ((/^(打开|启动|运行)/g.exec(text)) != null) {
+        action = "openApp";
+        events = text.match(/(打开|启动|运行)(\S*)/)[2];
+        result = {
+            "action": action,
+            "events": events,
+        }
+        return result;
+    }
+
+    //收款
+    if ((/(微信收款|支付宝收款)/g.exec(text)) != null) {
+        action = "collect";
+        obj = text.match(/(微信|支付宝)/)[1];
+        result = {
+            "action": action,
+            "obj": obj
+        }
+        return result;
+    }
+
+    //开始番茄计时
+    if ((/^(开始)/g.exec(text)) != null) {
+        action = "tomatoTime";
+        events = text.match(/(开始)(\S*)/)[2];
+        result = {
+            "action": action,
+            "events": events,
+        }
+        return result;
+    }
+
+    return false;
 }
