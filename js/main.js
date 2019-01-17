@@ -1,227 +1,82 @@
-try {
-    var StoragesMode = storages.create("top.warmj.sarascript:mode");
-
-    StoragesMode.put("MainMode", true);
-    StoragesMode.put("RemindMode", true);
-    StoragesMode.put("MapMode", true);
-    StoragesMode.put("SearchMode", true);
-    StoragesMode.put("TomatoTimeMode", true);
-    StoragesMode.put("PayMode", true);
-    StoragesMode.put("TimerMode", true);
-    StoragesMode.put("ScannerMode", true);
-    StoragesMode.put("BusCodeMode", true);
-    StoragesMode.put("OpenAppMode", true);
-    StoragesMode.put("CollectMode", true);
-    StoragesMode.put("CallMode", true);
-    StoragesMode.put("AutoMode", false);
-    StoragesMode.put("DoubleWechatMode", false);
-
-    if (!StoragesMode.get("AutoMode")) {
-        for (var i = 0; i < 10; i++) {
-            try {
-                auto();
-                StoragesMode.put("AutoMode", true);
-                break;
-            } catch (Exception) {
-                if (i == 1) {
-                    toast("辅助功能未启动\n请向上滑动找到 SaraScript\n启动该服务");
-                }
-            }
-            sleep(1000);
-            if (i == 9) {
-                engines.stopAll();
-                StoragesMode.put("AutoMode", false);
-            }
+for (var i = 0; i < 20; i++) {
+    try {
+        auto();
+        toast("启动成功!\n请使用“闪念胶囊”唤醒语音识别");
+        toast("按“音量上键”会关闭软件\n可前往软件设置中取消该功能");
+        setScreenMetrics(1080, 1920);
+        var speed = 10; //点击速度
+        var doubleWechat = 1;//默认没有双开微信，0 双开，1 单开
+        doubleWechat = dialogs.select("有无双开微信？", "有", "没有双开微信");
+        importClass(android.net.Uri);
+        break;
+    } catch (Exception) {
+        if (i == 0) {
+            toast("辅助功能未启动\n请向上滑动找到 SaraScript\n启动该服务");
         }
     }
+    sleep(1000);
+}
 
-    toast("启动成功!\n请使用“闪念胶囊”唤醒语音识别");
-    toast("按“音量上键”会关闭软件\n可前往软件设置中取消该功能");
-    setScreenMetrics(1080, 1920);
-    var speed = 10; //点击速度
-    var temp = ""; //当联系人有多个的时候，避免重复操作而卡死
+while (true) {
+    if (!id("iv_bubble_play").exists()) {
 
-    if (dialogs.select("有无双开微信？", "有", "没有双开微信") == 0) {
-        StoragesMode.put("DoubleWechatMode", true);
     } else {
-        StoragesMode.put("DoubleWechatMode", false);
-    }
 
-    importClass(android.net.Uri);
+        var text = id("tv_title_small").findOne().text().replace(/。/, "").replace(/\s/g, "");//关键字，去中文句号，去空格
+        var textArr = text.split("");
+        var key = "";
 
-    while (StoragesMode.get("MainMode")) {
-        if (!id("iv_bubble_play").exists()) {
-        } else {
-            var text = id("tv_title_small").findOne().text().replace(/。/, "").replace(/\s/g, "");//命令，去中文句号，去空格
-            var textArr = text.split(""); //命令数组
-            var key = ""; //功能关键字 
+        if (textArr[0] + textArr[1] + textArr[2] == "提醒我") {
+            //提醒功能
+            delBubble();
+            for (var i = 3; i < textArr.length; i++) {
+                key += textArr[i];
+            };
 
-            var target = parsing(text);
-            switch (target.action) {
-                case "remind": remind(); break;
-                case "map": map(); break;
-                case "search": search(); break;
-                case "tomatoTime": tomatoTime(); break;
-                case "pay": pay(); break;
-                case "timer": timer(); break;
-                case "scanner": scanner(); break;
-                case "busCode": busCode(); break;
-                case "openApp": openApp(); break;
-                case "collect": collect(); break;
-                case "call": call(); break;
-                default: ;
-            }
-            console.log(target);
+            remind(key);
+        } else if (textArr[0] + textArr[1] == "导航") {
+            //导航功能
+            delBubble();
 
-        }
-        sleep(200);
-    }
-} catch (Exception) {
-    toast("语音助手已关闭");
-}
+            for (var i = 3; i < textArr.length; i++) {
+                key += textArr[i];
+            };
 
-//提醒功能
-function remind() {
-    if (StoragesMode.get("RemindMode")) {
-        delBubble();
+            map(key);
+        } else if (textArr[2] + textArr[3] == "查询"
+            || (textArr[3] + textArr[4] == "查询")
+            || (textArr[2] + textArr[3] == "搜索")
+            || (textArr[3] + textArr[4] == "搜索")) {
+            //查询功能
+            delBubble();
 
-        try {
-            app.startActivity({
-                action: "android.intent.action.SEND",
-                type: "text/*",
-                extras: {
-                    "android.intent.extra.TEXT": target.events
-                },
-                packageName: "com.android.calendar",
-                className: "com.android.calendar.event.EditEventActivity"
-            });
-
-            if (isExistsByClass("android.widget.Button", "完成")) {
-                clickCenterByClass("android.widget.Button", "完成")
-                toast("创建成功！");
-                return true;
-            }
-        } catch (Exception) {
-            toast("创建失败！");
-            return false;
-        }
-
-    }
-}
-
-//导航功能
-function map() {
-    if (StoragesMode.get("MapMode")) {
-        delBubble();
-
-        try {
-            app.startActivity({
-                action: "android.intent.action.SEND",
-                type: "text/plain",
-                extras: {
-                    "android.intent.extra.TEXT": target.events
-                },
-                packageName: "com.autonavi.minimap",
-                className: "com.autonavi.map.activity.NewMapActivity"
-            });
-
-            toast("正在使用高德地图查询地点，请稍候……");
-            return true;
-
-        } catch (Exception) {
-            toast("错误！\n未安装高德地图或不支持此版本\n请安装或更新软件")
-            return false;
-        }
-    }
-}
-
-//查询功能
-function search() {
-    if (StoragesMode.get("SearchMode")) {
-        delBubble();
-
-        switch (target.obj) {
-            case "淘宝":
-                try {
-                    app.startActivity({
-                        action: "android.intent.action.SEND",
-                        type: "text/plain",
-                        extras: {
-                            "android.intent.extra.TEXT": target.events
-                        },
-                        packageName: "com.taobao.taobao",
-                        className: "com.taobao.search.sf.MainSearchResultActivity"
-                    });
-                    toast("正在使用淘宝查询，请稍候……");
-                    toast("查询结束后\n请连续点击“返回键”退出搜索页面");
-                } catch (Exception) {
-                    toast("错误！\n未安装淘宝或不支持此版本\n请安装或更新软件");
+            var obj;
+            textArr.some(function (value, index) {
+                if (value == "查" || value == "搜") {
+                    obj = textArr[index - 2] + textArr[index - 1]; //使用什么软件查询
+                    for (var i = index + 2; i < textArr.length; i++) {
+                        key += textArr[i];
+                    };
+                    return true;
                 }
-                break;
-            case "京东":
-                try {
-                    app.startActivity({
-                        action: "android.intent.action.SEND",
-                        type: "text/plain",
-                        extras: {
-                            "android.intent.extra.TEXT": target.events
-                        },
-                        packageName: "com.jingdong.app.mall",
-                        className: "com.jd.lib.search.view.Activity.ProductListActivity"
-                    });
-                    toast("正在使用京东查询，请稍候……");
-                    toast("查询结束后\n请连续点击“返回键”退出搜索页面");
-                } catch (Exception) {
-                    toast("错误！\n未安装京东或不支持此版本\n请安装或更新软件");
-                }
-                break;
-            default: toast("暂不支持");
-        }
-    }
-}
+            })
 
-//番茄计时功能
-function tomatoTime() {
-    if (StoragesMode.get("TomatoTimeMode")) {
-        if (textArr[0] + textArr[1] == "开始") {
+            search(key, obj);
+        } else if (textArr[0] + textArr[1] == "开始") {
             //开始番茄计时
             if (getAppName("com.plan.kot32.tomatotime")) {
                 delBubble();
 
                 for (var i = 2; i < textArr.length; i++) {
                     key += textArr[i];
-                }
+                };
 
-                app.startActivity({
-                    packageName: "com.plan.kot32.tomatotime",
-                    className: "com.plan.kot32.tomatotime.activity.MainActivity"
-                })
-
-                toastNew(0);
-
-                for (var i = 0; i < 6; i++) {
-                    if (i == 5) {
-                        toast("启动失败，没有这个待办事项");
-                    }
-
-                    if (className("android.widget.TextView").text(key).exists()) {
-                        var bounds = className("android.widget.TextView").text(key).findOne().bounds();
-                        setScreenMetrics(device.width, device.height);
-                        click(device.width - 100, bounds.bottom);
-                        return;
-                    }
-                    sleep(600);
-                }
+                tomatoTime(key);
             } else {
-                toast("错误！\n未安装番茄Todo或不支持此版本\n请安装或更新软件");
+                continue;
             }
-        }
-    }
-}
-//付款
-function pay() {
-    if (StoragesMode.get("PayMode")) {
-        if (textArr[textArr.length - 2] + textArr[textArr.length - 1] == "付款") {
+        } else if (textArr[textArr.length - 2] + textArr[textArr.length - 1] == "付款") {
+            //付款
             delBubble();
 
             var obj = -1;
@@ -231,133 +86,21 @@ function pay() {
                 obj = 1;
             }
 
-            switch (obj) {
-                case 0: //微信  
-                    try {
-                        //直接唤醒付款页面，双开微信可用
-                        app.startActivity({
-                            packageName: "com.tencent.mm",
-                            className: "com.tencent.mm.plugin.offline.ui.WalletOfflineCoinPurseUI"
-                        });
-                        toastNew(1);
-
-                        clickMainWeChat();
-
-                    } catch (Exception) {
-                        //连续点击到付款页面
-                        if (launch("com.tencent.mm")) {
-                            toastNew(1);
-
-                            clickMainWeChat();
-
-                            id("d3t").className("android.widget.TextView").text("发现").findOne().parent().parent().click();
-                            click(996, 150);
-                            sleep(200);
-                            click("收付款");
-
-                        } else {
-                            toast("错误！\n未安装微信或不支持此版本\n请安装或更新软件");
-                        }
-                    }
-
-                    break;
-                case 1: //支付宝
-                    try {
-                        app.startActivity({
-                            packageName: "com.eg.android.AlipayGphone",
-                            className: "com.eg.android.AlipayGphone.AlipayLogin"
-                        });
-                        toastNew(1);
-
-                        if (isExistsByClass("android.widget.TextView", "首页")) {
-                            click("首页");
-                            click("付钱");
-                        }
-
-                    } catch (Exception) {
-                        toast("错误！\n未安装支付宝或不支持此版本\n请安装或更新软件");
-                    };
-                    break;
-                default: toast("暂不支持");
-            }
-        }
-    }
-}
-
-//倒计时功能
-function timer() {
-    if (StoragesMode.get("TimerMode")) {
-        if (textArr[0] + textArr[1] + textArr[2] == "倒计时") {
+            pay(obj);
+        } else if (textArr[0] + textArr[1] + textArr[2] == "倒计时") {
             //倒计时功能
             delBubble();
 
             if (textArr[textArr.length - 1] != "钟") {
                 toast("注意！只能以分钟为单位。");
             } else {
-                var m = text.match(/\时(\S*)\分/)[1];
-                switch (m) {
-                    case "一":
-                        m = 1;
-                        break;
-                    case "两":
-                        m = 2;
-                        break;
-                    case "三":
-                        m = 3;
-                        break;
-                    case "四":
-                        m = 4;
-                        break;
-                    case "五":
-                        m = 5;
-                        break;
-                    case "六":
-                        m = 6;
-                        break;
-                    case "七":
-                        m = 7;
-                        break;
-                    case "八":
-                        m = 8;
-                        break;
-                    case "九":
-                        m = 9;
-                        break;
-                    case "十":
-                        m = 10;
-                        break;
-                    case "六十":
-                        m = 60;
-                        break;
-                }
+                var time = text.match(/\时(\S*)\分/)[1];
 
-                if (!isNaN(m) && m > 0 && m < 61) {
-                    launch("com.smartisanos.clock");
-                    if (isExistsByClass("android.widget.RadioButton", "计时器")) {
-                        setScreenMetrics(device.width, device.height);
-
-                        toastNew(0);
-                        sleep(1000);
-
-                        click("计时器");
-                        var bounds = id("high_light").findOne().bounds();
-                        var endY = bounds.centerY() + 20 * m;
-                        swipe(bounds.centerX(), bounds.centerY(), bounds.centerX(), endY, 10);
-                        click(100, 1500);
-                    }
-                } else {
-                    toast("时间有误！\n倒计时范围：1 ~ 60 分钟");
-                }
+                timer(time);
             }
-        }
-    }
-}
-
-//扫一扫
-function scanner() {
-    if (StoragesMode.get("ScannerMode")) {
-        if (textArr[textArr.length - 3] + textArr[textArr.length - 2] + textArr[textArr.length - 1] == "扫一扫"
+        } else if (textArr[textArr.length - 3] + textArr[textArr.length - 2] + textArr[textArr.length - 1] == "扫一扫"
             || textArr[textArr.length - 2] + textArr[textArr.length - 1] == "扫码") {
+            //扫一扫功能
             delBubble();
 
             var obj = -1;
@@ -369,58 +112,10 @@ function scanner() {
                 obj = 1;
             }
 
-            switch (obj) {
-                case 0: //微信
-                    try {
-                        //直接唤醒扫一扫界面，双开微信可用
-                        app.startActivity({
-                            packageName: "com.tencent.mm",
-                            className: "com.tencent.mm.plugin.scanner.ui.BaseScanUI"
-                        });
-
-                        toastNew(1);
-                        clickMainWeChat();
-                    } catch (Exception) {
-                        //连续点击到扫一扫界面
-                        if (launch("com.tencent.mm")) {
-                            toastNew(1);
-                            clickMainWeChat();
-
-                            id("d3t").className("android.widget.TextView").text("发现").findOne().parent().parent().click();
-                            clickTimerByText("扫一扫");
-                        } else {
-                            toast("错误！\n未安装微信或不支持此版本\n请安装或更新软件");
-                        }
-                    };
-                    break;
-                case 1: //支付宝
-                    try {
-                        app.startActivity({
-                            packageName: "com.eg.android.AlipayGphone",
-                            className: "com.eg.android.AlipayGphone.AlipayLogin"
-                        });
-
-                        toastNew(1);
-
-                        if (isExistsByClass("android.widget.TextView", "首页")) {
-                            click("首页");
-                            click("扫一扫");
-                        }
-                    } catch (Exception) {
-                        toast("错误！\n未安装支付宝或不支持此版本\n请安装或更新软件");
-                    };
-                    break;
-                default: toast("暂不支持");
-            }
-        }
-    }
-}
-
-//乘车码
-function busCode() {
-    if (StoragesMode.get("BusCodeMode")) {
-        if (textArr[textArr.length - 2] + textArr[textArr.length - 1] == "乘车"
+            scanner(obj);
+        } else if (textArr[textArr.length - 2] + textArr[textArr.length - 1] == "乘车"
             || textArr[textArr.length - 3] + textArr[textArr.length - 2] + textArr[textArr.length - 1] == "乘车码") {
+            //乘车码功能
             delBubble();
 
             var obj = -1;
@@ -432,119 +127,19 @@ function busCode() {
                 obj = 1;
             }
 
-            switch (obj) {
-                case 0: //微信
-                    toast("该功能不稳定，请保证微信乘车码已添加至‘一步’中，且置顶在最上面。");
-                    toastNew(1);
-                    swipe(1060, 10, 820, 360, 200);
-                    sleep(300);
-                    swipe(1000, 400, 1000, 4000, 200);
-                    sleep(1500);
-                    click(1020, 342);
-                    click(1060, 10);
-                    break;
-                case 1: //支付宝
-                    try {
-                        app.startActivity({
-                            packageName: "com.eg.android.AlipayGphone",
-                            className: "com.eg.android.AlipayGphone.AlipayLogin"
-                        });
-
-                        toastNew(1);
-
-                        if (isExistsByClass("android.widget.TextView", "首页")) {
-                            click("首页");
-                            click(1016, 150);
-                            sleep(400);
-                            click("乘车码");
-                        }
-
-                    } catch (Exception) {
-                        toast("错误！\n未安装支付宝或不支持此版本\n请安装或更新软件");
-                    };
-                    break;
-                default: toast("暂不支持");
-            }
-        }
-    }
-}
-
-//打开应用
-function openApp() {
-    if (StoragesMode.get("OpenAppMode")) {
-        if (textArr[0] + textArr[1] == "启动"
+            busCode(obj);
+        } else if (textArr[0] + textArr[1] == "启动"
             || textArr[0] + textArr[1] == "打开"
             || textArr[0] + textArr[1] == "运行") {
+            //打开程序功能
             delBubble();
 
-            var AppName = text.slice(2);
+            var obj = text.slice(2);
 
-            switch (AppName) {
-                case "微信":
-                case "主微信":
-                case "第一个微信":
-                    toastLaunchApp("微信");
-                    if (StoragesMode.get("DoubleWechatMode")) {
-                        clickMainWeChat();
-                    }
-                    break;
-                case "副微信":
-                case "第二个微信":
-                    toastLaunchApp("微信");
-                    if (StoragesMode.get("DoubleWechatMode")) {
-                        clickViceWeChat();
-                    }
-                    break;
-                case "淘宝":
-                case "手机淘宝":
-                    toastLaunchApp("手机淘宝");
-                    break;
-                case "浏览器":
-                    openUrl("http://");
-                    break;
-                case "微博":
-                case "新浪微博":
-                    if (app.getAppName("com.sina.weibo") != null) {
-                        toastLaunchApp("微博");
-                    } else if (app.getAppName("com.hengye.share") != null) {
-                        toastLaunchApp("Share");
-                    } else if (app.getAppName("com.weico.international") != null) {
-                        toastLaunchApp("微博国际版");
-                    } else if (app.getAppName("com.sina.weibolite") != null) {
-                        toastLaunchApp("微博极速版");
-                    } else if (app.getAppName("com.sina.weibog3") != null) {
-                        toastLaunchApp("新浪微博4G版");
-                    };
-                    break;
-                case "QQ":
-                case "qq":
-                    if (app.getAppName("com.tencent.mobileqq") != null) {
-                        toastLaunchApp("QQ");
-                    } else if (app.getAppName("com.tencent.tim") != null) {
-                        toastLaunchApp("TIM");
-                    } else if (app.getAppName("com.tencent.mobileqqi") != null) {
-                        toastLaunchApp("QQ国际版");
-                    }
-                    break;
-                case "哔哩哔哩":
-                case "哔哩哔哩哔哩":
-                case "b站":
-                    toastLaunchApp("哔哩哔哩");
-                    break;
-                default:
-                    if (!toastLaunchApp(AppName)) {
-                        toast("未找到应用");
-                    };
-            }
-        }
-    }
-}
-
-//收款
-function collect() {
-    if (StoragesMode.get("CollectMode")) {
-        if (textArr[textArr.length - 2] + textArr[textArr.length - 1] == "收钱"
+            openApp(obj);
+        } else if (textArr[textArr.length - 2] + textArr[textArr.length - 1] == "收钱"
             || textArr[textArr.length - 2] + textArr[textArr.length - 1] == "收款") {
+            //收钱功能
             delBubble();
 
             var obj = -1;
@@ -554,80 +149,460 @@ function collect() {
                 obj = 1;
             }
 
-            switch (obj) {
-                case 0: //微信
-                    try {
-                        app.startActivity({
-                            packageName: "com.tencent.mm",
-                            className: "com.tencent.mm.plugin.collect.ui.CollectMainUI"
-                        })
-
-                        toastNew(1);
-                        clickMainWeChat();
-
-                    } catch (Exception) {
-                        if (launch("com.tencent.mm")) {
-                            toastNew(1);
-                            clickMainWeChat();
-
-                            id("d3t").className("android.widget.TextView").text("发现").findOne().parent().parent().click();
-                            click(996, 150);
-                            sleep(200);
-                            click("收付款");
-                            sleep(800);
-                            click(540, 1540);
-
-                        } else {
-                            toast("错误！\n未安装微信或不支持此版本\n请安装或更新软件");
-                        }
-                    }
-                    break;
-                case 1: //支付宝
-                    try {
-                        app.startActivity({
-                            packageName: "com.eg.android.AlipayGphone",
-                            className: "com.eg.android.AlipayGphone.AlipayLogin"
-                        });
-
-                        toastNew(1);
-
-                        if (isExistsByClass("android.widget.TextView", "首页")) {
-                            click("首页");
-                            click("收钱");
-                        }
-
-                    } catch (Exception) {
-                        toast("错误！\n未安装支付宝或不支持此版本\n请安装或更新软件");
-                    }
-                    break;
-                default: toast("暂不支持");
+            collect(obj);
+        } else if (id("title").exists()) {
+            //打电话功能
+            if (id("title").findOne().text() == "联系人") {
+                call();
             }
         }
+
+        text = "";
+        textArr = text.split("");
+        key = "";
+        obj = "";
+    }
+    sleep(200);
+}
+
+//提醒功能
+function remind(content) {
+    try {
+        app.startActivity({
+            action: "android.intent.action.SEND",
+            type: "text/*",
+            extras: {
+                "android.intent.extra.TEXT": content
+            },
+            packageName: "com.android.calendar",
+            className: "com.android.calendar.event.EditEventActivity"
+        });
+
+        if (isExistsByClass("android.widget.Button", "完成")) {
+            clickCenterByClass("android.widget.Button", "完成")
+            toast("创建成功！");
+        };
+
+    } catch (Exception) {
+        toast("创建失败！");
+    }
+}
+
+//导航功能
+function map(content) {
+    try {
+        app.startActivity({
+            action: "android.intent.action.SEND",
+            type: "text/plain",
+            extras: {
+                "android.intent.extra.TEXT": content
+            },
+            packageName: "com.autonavi.minimap",
+            className: "com.autonavi.map.activity.NewMapActivity"
+        });
+
+        toast("正在使用高德地图查询地点，请稍候……");
+
+    } catch (Exception) {
+        toast("错误！\n未安装高德地图或不支持此版本\n请安装或更新软件")
+    }
+}
+
+//查询功能
+function search(content, obj) {
+    switch (obj) {
+        case "淘宝":
+            try {
+                app.startActivity({
+                    action: "android.intent.action.SEND",
+                    type: "text/plain",
+                    extras: {
+                        "android.intent.extra.TEXT": content
+                    },
+                    packageName: "com.taobao.taobao",
+                    className: "com.taobao.search.sf.MainSearchResultActivity"
+                });
+                toast("正在使用" + obj + "查询，请稍候……");
+                toast("查询结束后\n请连续点击“返回键”退出搜索页面");
+            } catch (Exception) {
+                toast("错误！\n未安装淘宝或不支持此版本\n请安装或更新软件");
+            };
+            break;
+        case "京东":
+            try {
+                app.startActivity({
+                    action: "android.intent.action.SEND",
+                    type: "text/plain",
+                    extras: {
+                        "android.intent.extra.TEXT": content
+                    },
+                    packageName: "com.jingdong.app.mall",
+                    className: "com.jd.lib.search.view.Activity.ProductListActivity"
+                });
+                toast("正在使用" + obj + "查询，请稍候……");
+                toast("查询结束后\n请连续点击“返回键”退出搜索页面");
+            } catch (Exception) {
+                toast("错误！\n未安装京东或不支持此版本\n请安装或更新软件");
+            };
+            break;
+        default: toast("暂不支持");
+    }
+}
+
+//番茄计时功能
+function tomatoTime(key) {
+    try {
+        app.startActivity({
+            packageName: "com.plan.kot32.tomatotime",
+            className: "com.plan.kot32.tomatotime.activity.MainActivity"
+        });
+        toastNew(0);
+
+        for (var i = 0; i < 6; i++) {
+            if (i == 5) {
+                toast("启动失败，没有这个待办事项");
+            }
+
+            if (className("android.widget.TextView").text(key).exists()) {
+                var bounds = className("android.widget.TextView").text(key).findOne().bounds();
+                setScreenMetrics(device.width, device.height);
+                click(device.width - 100, bounds.bottom);
+
+                return;
+            }
+            sleep(600);
+        }
+    } catch (Exception) {
+        toast("错误！\n未安装番茄Todo或不支持此版本\n请安装或更新软件");
+    }
+}
+
+//付款
+function pay(obj) {
+    switch (obj) {
+        case 0: //微信  
+            try {
+                //直接唤醒付款页面，双开微信可用
+                app.startActivity({
+                    packageName: "com.tencent.mm",
+                    className: "com.tencent.mm.plugin.offline.ui.WalletOfflineCoinPurseUI"
+                });
+                toastNew(1);
+
+                clickMainWeChat();
+
+            } catch (Exception) {
+                //连续点击到付款页面
+                if (launch("com.tencent.mm")) {
+                    toastNew(1);
+
+                    clickMainWeChat();
+
+                    id("d3t").className("android.widget.TextView").text("发现").findOne().parent().parent().click();
+                    click(996, 150);
+                    sleep(200);
+                    click("收付款");
+
+                } else {
+                    toast("错误！\n未安装微信或不支持此版本\n请安装或更新软件");
+                }
+            }
+
+            break;
+        case 1: //支付宝
+            try {
+                app.startActivity({
+                    packageName: "com.eg.android.AlipayGphone",
+                    className: "com.eg.android.AlipayGphone.AlipayLogin"
+                });
+                toastNew(1);
+
+                if (isExistsByClass("android.widget.TextView", "首页")) {
+                    click("首页");
+                    click("付钱");
+                }
+
+            } catch (Exception) {
+                toast("错误！\n未安装支付宝或不支持此版本\n请安装或更新软件");
+            };
+            break;
+        default: toast("暂不支持");
+    }
+}
+
+//倒计时功能
+function timer(m) {
+    switch (m) {
+        case "一":
+            m = 1;
+            break;
+        case "两":
+            m = 2;
+            break;
+        case "三":
+            m = 3;
+            break;
+        case "四":
+            m = 4;
+            break;
+        case "五":
+            m = 5;
+            break;
+        case "六":
+            m = 6;
+            break;
+        case "七":
+            m = 7;
+            break;
+        case "八":
+            m = 8;
+            break;
+        case "九":
+            m = 9;
+            break;
+        case "十":
+            m = 10;
+            break;
+        case "六十":
+            m = 60;
+            break;
+    }
+
+    if (!isNaN(m) && m > 0 && m < 61) {
+        launch("com.smartisanos.clock");
+        if (isExistsByClass("android.widget.RadioButton", "计时器")) {
+            toastNew(0);
+            sleep(1000);
+            click("计时器");
+
+            try {
+                setScreenMetrics(device.width, device.height);
+                var bounds = id("high_light").findOne().bounds();
+
+                var endY = bounds.centerY() + 20 * m;
+
+                swipe(bounds.centerX(), bounds.centerY(), bounds.centerX(), endY, 10);
+                click(100, 1500);
+            } catch (Exception) {
+                toast("暂不支持此设备，请联系开发者");
+            }
+        }
+    } else {
+        toast("时间有误！\n倒计时范围：1 ~ 60 分钟");
+    }
+}
+
+//扫一扫
+function scanner(obj) {
+    switch (obj) {
+        case 0: //微信
+            try {
+                //直接唤醒扫一扫界面，双开微信可用
+                app.startActivity({
+                    packageName: "com.tencent.mm",
+                    className: "com.tencent.mm.plugin.scanner.ui.BaseScanUI"
+                });
+
+                toastNew(1);
+                clickMainWeChat();
+
+            } catch (Exception) {
+                //连续点击到扫一扫界面
+                if (launch("com.tencent.mm")) {
+                    toastNew(1);
+                    clickMainWeChat();
+
+                    id("d3t").className("android.widget.TextView").text("发现").findOne().parent().parent().click();
+                    clickTimerByText("扫一扫");
+
+                } else {
+                    toast("错误！\n未安装微信或不支持此版本\n请安装或更新软件");
+                }
+            };
+            break;
+        case 1: //支付宝
+            try {
+                app.startActivity({
+                    packageName: "com.eg.android.AlipayGphone",
+                    className: "com.eg.android.AlipayGphone.AlipayLogin"
+                });
+
+                toastNew(1);
+
+                if (isExistsByClass("android.widget.TextView", "首页")) {
+                    click("首页");
+                    click("扫一扫");
+                }
+
+            } catch (Exception) {
+                toast("错误！\n未安装支付宝或不支持此版本\n请安装或更新软件");
+            };
+            break;
+        default: toast("暂不支持");
+    }
+}
+
+//乘车码
+function busCode(obj) {
+    switch (obj) {
+        case 0: //微信
+            toast("该功能不稳定，请保证微信乘车码已添加至‘一步’中，且置顶在最上面。");
+            toastNew(1);
+            swipe(1060, 10, 820, 360, 200);
+            sleep(300);
+            swipe(1000, 400, 1000, 4000, 200);
+            sleep(1500);
+            click(1020, 342);
+            click(1060, 10);
+            break;
+        case 1: //支付宝
+            try {
+                app.startActivity({
+                    packageName: "com.eg.android.AlipayGphone",
+                    className: "com.eg.android.AlipayGphone.AlipayLogin"
+                });
+
+                toastNew(1);
+
+                if (isExistsByClass("android.widget.TextView", "首页")) {
+                    click("首页");
+                    click(1016, 150);
+                    sleep(400);
+                    click("乘车码");
+                }
+
+            } catch (Exception) {
+                toast("错误！\n未安装支付宝或不支持此版本\n请安装或更新软件");
+            };
+            break;
+        default: toast("暂不支持");
     }
 }
 
 //打电话
 function call() {
-    if (StoragesMode.get("CallMode") && temp != text) {
-        if (id("btn_call").exists()) {
-            var count = 0;
-            id("item_layout").untilFind().forEach(child => {
-                count++;
-            });
-            if (count == 1) {
-                id("item_layout").findOne().click();
-                sleep(1000);
-                temo = "";
-                return true;
-            }
-        }
-        temp = text;
+    var count = 0;
+
+    id("item_layout").untilFind().forEach(child => {
+        count++;
+    });
+
+    if (count == 1) {
+        id("item_layout").findOne().click();
     }
 }
 
-//是否开启辅助功能
-function isAutoMode() {
+//打开应用
+function openApp(appName) {
+    switch (appName) {
+        case "微信":
+        case "主微信":
+        case "第一个微信":
+            toastLaunchApp("微信");
+            if (doubleWechat == 0) {
+                clickMainWeChat();
+            }
+            break;
+        case "副微信":
+        case "第二个微信":
+            toastLaunchApp("微信");
+            if (doubleWechat == 0) {
+                clickViceWeChat();
+            }
+            break;
+        case "淘宝":
+        case "手机淘宝":
+            toastLaunchApp("手机淘宝");
+            break;
+        case "浏览器":
+            openUrl("http://");
+            break;
+        case "微博":
+        case "新浪微博":
+            if (app.getAppName("com.sina.weibo") != null) {
+                toastLaunchApp("微博");
+            } else if (app.getAppName("com.hengye.share") != null) {
+                toastLaunchApp("Share");
+            } else if (app.getAppName("com.weico.international") != null) {
+                toastLaunchApp("微博国际版");
+            } else if (app.getAppName("com.sina.weibolite") != null) {
+                toastLaunchApp("微博极速版");
+            } else if (app.getAppName("com.sina.weibog3") != null) {
+                toastLaunchApp("新浪微博4G版");
+            };
+            break;
+        case "QQ":
+        case "qq":
+            if (app.getAppName("com.tencent.mobileqq") != null) {
+                toastLaunchApp("QQ");
+            } else if (app.getAppName("com.tencent.tim") != null) {
+                toastLaunchApp("TIM");
+            } else if (app.getAppName("com.tencent.mobileqqi") != null) {
+                toastLaunchApp("QQ国际版");
+            }
+            break;
+        case "哔哩哔哩":
+        case "哔哩哔哩哔哩":
+        case "b站":
+            toastLaunchApp("哔哩哔哩");
+            break;
+        default:
+            if (!toastLaunchApp(obj)) {
+                toast("未找到应用");
+            };
+    }
+}
 
+//收款
+function collect(obj) {
+    switch (obj) {
+        case 0: //微信
+            try {
+                app.startActivity({
+                    packageName: "com.tencent.mm",
+                    className: "com.tencent.mm.plugin.collect.ui.CollectMainUI"
+                });
+
+                toastNew(1);
+                clickMainWeChat();
+
+            } catch (Exception) {
+                if (launch("com.tencent.mm")) {
+                    toastNew(1);
+                    clickMainWeChat();
+
+                    id("d3t").className("android.widget.TextView").text("发现").findOne().parent().parent().click();
+                    click(996, 150);
+                    sleep(200);
+                    click("收付款");
+                    sleep(800);
+                    click(540, 1540);
+
+                } else {
+                    toast("错误！\n未安装微信或不支持此版本\n请安装或更新软件");
+                }
+            }
+            break;
+        case 1: //支付宝
+            try {
+                app.startActivity({
+                    packageName: "com.eg.android.AlipayGphone",
+                    className: "com.eg.android.AlipayGphone.AlipayLogin"
+                });
+
+                toastNew(1);
+
+                if (isExistsByClass("android.widget.TextView", "首页")) {
+                    click("首页");
+                    click("收钱");
+                }
+
+            } catch (Exception) {
+                toast("错误！\n未安装支付宝或不支持此版本\n请安装或更新软件");
+            };
+            break;
+        default: toast("暂不支持");
+    }
 }
 
 //点击一个Class控件 text参数,点击到或者等待5s后退出
@@ -740,7 +715,7 @@ function toastNew(var1) {
 
 //点击主微信
 function clickMainWeChat() {
-    if (StoragesMode.get("DoubleWechatMode")) {
+    if (doubleWechat == 0) {
         if (isExistsById("original_app_icon")) {
             clickCenterById("original_app_icon");
         };
@@ -749,7 +724,7 @@ function clickMainWeChat() {
 
 //点击副微信
 function clickViceWeChat() {
-    if (StoragesMode.get("DoubleWechatMode")) {
+    if (doubleWechat == 0) {
         if (isExistsById("doppelganger_app_icon")) {
             clickCenterById("doppelganger_app_icon");
         };
@@ -786,141 +761,4 @@ function delBubble() {
             click(527, 117);
         }
     }
-}
-
-
-function parsing(text) {
-    var textArr = text.split(""); //分割命令
-    var action;
-    var obj;
-    var events;
-    var mode;
-    var result = {
-        "action": action,
-        "obj": obj,
-        "events": events,
-        "mode": mode
-    }
-
-    //提醒
-    if (text.search("提醒") != -1) {
-        action = "remind";
-        events = text.replace(/提醒/i, "");
-        result = {
-            "action": action,
-            "obj": obj,
-            "events": events
-        }
-        return result;
-    }
-
-    //导航
-    if (text.search("导航到") != -1 || text.search("导航去") != -1 || text.search("导航至") != -1) {
-        action = "map";
-        events = text.replace(/导航去/i, "")
-        if (events == text) {
-            events = text.replace(/导航到/i, "")
-            if (events == text) {
-                events = text.replace(/导航至/i, "")
-            }
-        }
-
-        result = {
-            "action": action,
-            "events": events
-        }
-        return result;
-    }
-
-    //查询
-    if ((/(在|用|使用).*(搜索|查询)/g.exec(text)) != null) {
-        action = "search";
-        events = text.match(/(搜索|查询)(\S*)/)[2];
-        obj = text.match(/(在|用|使用)(\S*)(搜索|查询)/)[2];
-        result = {
-            "action": action,
-            "obj": obj,
-            "events": events
-        }
-        return result;
-    }
-
-    //付款
-    if ((/(付款)/g.exec(text)) != null) {
-        action = "pay";
-        obj = text.match(/(微信|支付宝)/)[1];
-        result = {
-            "action": action,
-            "obj": obj,
-        }
-        return result;
-    }
-
-    //倒计时
-    if ((/(倒计时)/g.exec(text)) != null) {
-        action = "timer";
-        events = text.match(/(倒计时)(\S*)/)[2];
-        result = {
-            "action": action,
-            "events": events,
-        }
-        return result;
-    }
-
-    //扫码
-    if ((/(扫一扫|扫码)/g.exec(text)) != null) {
-        action = "scanner";
-        obj = text.match(/(微信|支付宝)/)[1];
-        result = {
-            "action": action,
-            "obj": obj
-        }
-        return result;
-    }
-
-    //乘车码
-    if ((/(微信乘车|支付宝乘车)/g.exec(text)) != null) {
-        action = "busCode";
-        obj = text.match(/(微信|支付宝)/)[1];
-        result = {
-            "action": action,
-            "obj": obj
-        }
-        return result;
-    }
-
-    //打开程序
-    if ((/^(打开|启动|运行)/g.exec(text)) != null) {
-        action = "openApp";
-        events = text.match(/(打开|启动|运行)(\S*)/)[2];
-        result = {
-            "action": action,
-            "events": events,
-        }
-        return result;
-    }
-
-    //收款
-    if ((/(微信收款|支付宝收款)/g.exec(text)) != null) {
-        action = "collect";
-        obj = text.match(/(微信|支付宝)/)[1];
-        result = {
-            "action": action,
-            "obj": obj
-        }
-        return result;
-    }
-
-    //开始番茄计时
-    if ((/^(开始)/g.exec(text)) != null) {
-        action = "tomatoTime";
-        events = text.match(/(开始)(\S*)/)[2];
-        result = {
-            "action": action,
-            "events": events,
-        }
-        return result;
-    }
-
-    return false;
 }
